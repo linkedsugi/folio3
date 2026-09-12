@@ -207,7 +207,9 @@ function FormInner({ live, model, fromId }: { live: boolean; model: string | nul
             <Pill tone="warn">데모 모드 · 서버에 API 키가 없어 샘플 공고만 분석됩니다</Pill>
           )}
           {parent ? (
-            inheritUnlock ? (
+            isSample ? (
+              <Pill tone="accent">샘플 재분석 · 크레딧을 쓰지 않습니다</Pill>
+            ) : inheritUnlock ? (
               <Pill tone="accent">재분석 {reanalysesUsed + 1}/{REANALYSIS_INCLUDED} · 이전 결과의 열림 상태를 이어받습니다</Pill>
             ) : !sameJd ? (
               <Pill tone="neutral">JD 를 바꾸면 새 공고로 분석됩니다</Pill>
