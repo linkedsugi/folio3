@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Analysis } from "@/lib/types";
-import { LEVEL_LABEL, PRIORITY_LABEL } from "@/lib/scoring";
+import { LEVEL_LABEL, PRIORITY_LABEL, fmtScore } from "@/lib/scoring";
 import { COPY } from "@/lib/copy";
 import { CopyButton, DownloadButton } from "../CopyButton";
 import { LevelDot } from "../LevelDot";
@@ -13,8 +13,9 @@ import { SectionHeader } from "./SectionHeader";
 export function StorySection({ analysis, locked = false }: { analysis: Analysis; locked?: boolean }) {
   const { managerView: view, basicResume: basic, storyResume: story, id } = analysis;
   const gap = analysis.passLine - story.storyScore;
-  const notCounted = story.arguments.filter((a) => !a.counted).length;
-  const counted = story.arguments.length - notCounted;
+  const counted = story.arguments.filter((a) => a.counted).length;
+  /** 근거가 약하거나 없어 점수에 넣지 않은 주장 (근거는 있으나 액면 유지인 경우는 제외) */
+  const noEvidence = story.arguments.filter((a) => a.evidenceStatus !== "grounded").length;
   const filename = `${analysis.posting.company || "공고"}-${analysis.posting.title || "이력서"}-스토리보완.md`.replace(/[\\/:*?"<>|]/g, "_");
 
   return (
@@ -23,11 +24,11 @@ export function StorySection({ analysis, locked = false }: { analysis: Analysis;
         id="s22"
         number="2-2"
         title="스토리보완 이력서"
-        lead="부서장이 읽고 싶은 질문에 답하는 순서로 내 경험을 다시 배열했습니다. 이 이력서를 취준생에게 제공합니다."
+        lead="부서장이 읽고 싶은 질문에 답하는 순서로 내 경험을 다시 배열했습니다."
         aside={
           <div className="text-right">
             <div className="text-xs text-muted">스토리보완 후 충족률</div>
-            <div className="num text-3xl font-black text-ink">{story.storyScore}%</div>
+            <div className="num text-3xl font-black text-ink">{fmtScore(story.storyScoreExact, story.storyScore)}%</div>
             <div className="num text-xs text-muted">{gap > 0 ? `합격선까지 ${gap}%p` : "합격선 통과"}</div>
           </div>
         }
@@ -35,10 +36,12 @@ export function StorySection({ analysis, locked = false }: { analysis: Analysis;
 
       <ScoreMeter face={basic.faceScore} story={story.storyScore} passLine={analysis.passLine} />
 
-      <blockquote className="mt-6 rounded-xl border-l-4 border-accent bg-accent-soft/60 px-5 py-4">
-        <div className="text-xs font-bold uppercase tracking-wider text-accent">부서장을 향한 한 줄</div>
-        <p className="mt-1 text-lg font-bold leading-snug text-ink">{story.headline}</p>
-      </blockquote>
+      {!locked && (
+        <blockquote className="mt-6 rounded-xl border-l-4 border-accent bg-accent-soft/60 px-5 py-4">
+          <div className="text-xs font-bold uppercase tracking-wider text-accent">부서장을 향한 한 줄</div>
+          <p className="mt-1 text-lg font-bold leading-snug text-ink">{story.headline}</p>
+        </blockquote>
+      )}
 
       {locked && (
         <>
@@ -64,7 +67,7 @@ export function StorySection({ analysis, locked = false }: { analysis: Analysis;
             })}
           </ul>
           <p className="mt-4 rounded-lg bg-paper-2 px-4 py-3 text-sm leading-6 text-ink-2">
-            {COPY.result.evidenceNote} <span className="num font-semibold">반영 {counted}건 · 미반영 {notCounted}건.</span>
+            {COPY.result.evidenceNote} <span className="num font-semibold">점수 반영 {counted}건 · 근거 부족으로 미반영 {noEvidence}건.</span>
           </p>
           <p className="mt-3 text-sm"><a href="#gate" className="font-semibold text-accent hover:underline">논증 본문 · 근거 · 이력서 전문 열기 ↓</a></p>
         </>
@@ -146,7 +149,7 @@ export function StorySection({ analysis, locked = false }: { analysis: Analysis;
       </ul>
 
       <p className="mt-4 rounded-lg bg-paper-2 px-4 py-3 text-sm leading-6 text-ink-2">
-        {COPY.result.evidenceNote} <span className="num font-semibold">이번 분석에서 점수 미반영 처리된 주장: {notCounted}건.</span>
+        {COPY.result.evidenceNote} <span className="num font-semibold">이번 분석에서 근거 부족으로 미반영 처리된 주장: {noEvidence}건.</span>
       </p>
 
       <div className="mt-4">

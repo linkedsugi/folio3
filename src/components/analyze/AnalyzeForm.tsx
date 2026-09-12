@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { COPY } from "@/lib/copy";
 import { SAMPLE_STAGES } from "@/lib/sample";
-import { clearDraft, getAnalysis, getDraft, newId, saveAnalysis, saveDraft, unlockAnalysis } from "@/lib/storage";
+import { REANALYSIS_INCLUDED, claimFirstFree, clearDraft, getAnalysis, getDraft, listAnalyses, newId, reanalysisCount, saveAnalysis, saveDraft } from "@/lib/storage";
 import { useCredits, useHydrated } from "@/lib/useStorage";
 import type { Analysis, AnalyzeEvent, StageId } from "@/lib/types";
 import { Button, Pill, btnClass } from "../ui";
@@ -13,16 +13,23 @@ import { ProgressStepper, type StageState } from "./ProgressStepper";
 
 type Phase = "input" | "running" | "error";
 
+/**
+ * 목표 이력서에서 사용자가 직접 적은 메모만 이력 뒤에 붙인다.
+ * 체크만 한 항목(모델이 쓴 제목)은 붙이지 않는다 — 인용 근거로 오인될 수 있기 때문.
+ */
 function buildAugmentedResume(parent: Analysis): string {
   const lines: string[] = [];
   for (const g of parent.targetResume.gaps) {
     const note = parent.notes?.[g.id]?.trim();
-    const done = parent.progress?.[g.id];
-    if (!note && !done) continue;
-    lines.push(`- ${g.title}${done ? " (완료)" : ""}${note ? `: ${note}` : ""}`);
+    if (!note) continue;
+    lines.push(`- ${note}`);
   }
   if (lines.length === 0) return parent.candidate.resumeText;
   return `${parent.candidate.resumeText}\n\n[보강 추가]\n${lines.join("\n")}`;
+}
+
+function isSampleText(jd: string, resume: string): boolean {
+  return jd.trim() === SAMPLE_STAGES.posting.jdText.trim() && resume.trim() === SAMPLE_STAGES.candidate.resumeText.trim();
 }
 
 /** 하이드레이션 전에는 폼을 그리지 않는다 — 초기값이 브라우저 저장소에서 오기 때문 */
@@ -55,19 +62,21 @@ function FormInner({ live, model, fromId }: { live: boolean; model: string | nul
   const [title, setTitle] = useState(() => parent?.posting.title ?? getDraft()?.title ?? "");
   const [jd, setJd] = useState(() => parent?.posting.jdText ?? getDraft()?.jdText ?? "");
   const [resume, setResume] = useState(() => (parent ? buildAugmentedResume(parent) : (getDraft()?.resumeText ?? "")));
-  const [isSample, setIsSample] = useState(() => parent?.mode === "demo");
+  const [isSample, setIsSample] = useState(() => (parent ? parent.mode === "demo" : isSampleText(getDraft()?.jdText ?? "", getDraft()?.resumeText ?? "")));
+  const [saveError, setSaveError] = useState<Analysis | null>(null);
+  const reanalysesUsed = useMemo(() => (parent ? reanalysisCount(parent, listAnalyses()) : 0), [parent]);
   const [phase, setPhase] = useState<Phase>("input");
   const [stages, setStages] = useState<Record<StageId, StageState>>({ manager: "idle", basic: "idle", story: "idle", target: "idle" });
   const [previews, setPreviews] = useState<Partial<Record<StageId, string>>>({});
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  // 입력 보존 (오류·이탈 대비)
+  // 입력 보존 (오류·이탈 대비). 샘플 텍스트는 저장하지 않는다
   useEffect(() => {
-    if (parent) return;
+    if (parent || isSample) return;
     const t = setTimeout(() => saveDraft({ company, title, jdText: jd, resumeText: resume }), 400);
     return () => clearTimeout(t);
-  }, [company, title, jd, resume, parent]);
+  }, [company, title, jd, resume, parent, isSample]);
 
   const fillSample = () => {
     setCompany(SAMPLE_STAGES.posting.company);
@@ -80,14 +89,20 @@ function FormInner({ live, model, fromId }: { live: boolean; model: string | nul
 
   const edit = <T,>(setter: (v: T) => void) => (v: T) => {
     setter(v);
-    setIsSample(false);
+    if (!parent) setIsSample(false);
   };
+
+  /** 재분석은 JD 가 그대로일 때만 같은 공고로 친다 (JD 를 바꾸면 새 공고) */
+  const sameJd = Boolean(parent && jd.trim() === parent.posting.jdText.trim());
+  /** 열림 상태 상속: 같은 공고 · 부모가 열려 있음 · 샘플이 아님 · 포함 재분석 횟수 이내 */
+  const inheritUnlock = Boolean(parent && sameJd && parent.unlocked && parent.unlockedBy !== "sample" && reanalysesUsed < REANALYSIS_INCLUDED);
 
   const canSubmit = jd.trim().length >= 200 && resume.trim().length >= 150;
   const shortResume = resume.trim().length > 0 && resume.trim().length < 300;
 
   const run = async () => {
     setError(null);
+    setSaveError(null);
     setPhase("running");
     setStages({ manager: "idle", basic: "idle", story: "idle", target: "idle" });
     setPreviews({});
@@ -98,7 +113,7 @@ function FormInner({ live, model, fromId }: { live: boolean; model: string | nul
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, company, title, jdText: jd, resumeText: resume, demo: isSample, parentId: parent?.id ?? null }),
+        body: JSON.stringify({ id, company, title, jdText: jd, resumeText: resume, demo: isSample, parentId: parent && sameJd ? parent.id : null }),
         signal: ctrl.signal,
       });
       if (!res.ok || !res.body) {
@@ -125,7 +140,7 @@ function FormInner({ live, model, fromId }: { live: boolean; model: string | nul
             if (ev.stage === "manager") setPreviews((p) => ({ ...p, manager: `부서장이 뽑으려는 사람: ${ev.data.personProfile}` }));
             if (ev.stage === "basic") setPreviews((p) => ({ ...p, basic: `액면 충족률 ${ev.data.faceScore}% — 시작점일 뿐입니다` }));
             if (ev.stage === "story") {
-              const nc = ev.data.arguments.filter((a) => !a.counted).length;
+              const nc = ev.data.arguments.filter((a) => a.evidenceStatus !== "grounded").length;
               setPreviews((p) => ({ ...p, story: `스토리보완 후 ${ev.data.storyScore}% · 근거 부족으로 미반영 ${nc}건` }));
             }
           } else if (ev.type === "result") {
@@ -137,13 +152,18 @@ function FormInner({ live, model, fromId }: { live: boolean; model: string | nul
       }
       if (!result) throw new Error("결과를 받지 못했습니다.");
 
-      // 저장 + 열림 처리: 샘플/데모는 항상 열림, 첫 공고는 무료로 열림, 재분석은 부모 상태 상속
+      // 저장 + 열림 처리: 샘플/데모는 항상 열림, 같은 공고 재분석은 부모 상태 상속(포함 횟수 이내),
+      // 그 밖에는 첫 공고 무료 권리로만 자동으로 열린다. 크레딧은 GateCard 에서 사용자가 눌러야만 쓴다.
       let toSave: Analysis = result;
-      if (result.mode === "demo" || parent?.unlocked) {
-        toSave = { ...result, unlocked: true, unlockedBy: result.mode === "demo" ? "sample" : (parent?.unlockedBy ?? "firstFree") };
+      if (result.mode === "demo") toSave = { ...result, unlocked: true, unlockedBy: "sample" };
+      else if (inheritUnlock && parent) toSave = { ...result, unlocked: true, unlockedBy: parent.unlockedBy ?? "firstFree" };
+      if (!saveAnalysis(toSave)) {
+        setSaveError(toSave);
+        setPhase("error");
+        setError("브라우저 저장 공간이 부족해 결과를 저장하지 못했습니다. 내 공고에서 오래된 결과를 삭제한 뒤 다시 시도해 주세요. 입력은 그대로 남겨 두었습니다.");
+        return;
       }
-      saveAnalysis(toSave);
-      if (!toSave.unlocked) unlockAnalysis(toSave.id); // 첫 공고면 무료로 열리고, 아니면 잠긴 채 남는다
+      if (!toSave.unlocked) claimFirstFree(toSave.id);
       clearDraft();
       router.push(`/result/${toSave.id}`);
     } catch (err) {
@@ -187,7 +207,13 @@ function FormInner({ live, model, fromId }: { live: boolean; model: string | nul
             <Pill tone="warn">데모 모드 · 서버에 API 키가 없어 샘플 공고만 분석됩니다</Pill>
           )}
           {parent ? (
-            <Pill tone="accent">재분석 · 이전 결과의 열림 상태를 이어받습니다</Pill>
+            inheritUnlock ? (
+              <Pill tone="accent">재분석 {reanalysesUsed + 1}/{REANALYSIS_INCLUDED} · 이전 결과의 열림 상태를 이어받습니다</Pill>
+            ) : !sameJd ? (
+              <Pill tone="neutral">JD 를 바꾸면 새 공고로 분석됩니다</Pill>
+            ) : (
+              <Pill tone="neutral">포함된 재분석 {REANALYSIS_INCLUDED}회를 모두 썼습니다 · 상세는 크레딧으로 엽니다</Pill>
+            )
           ) : firstFree ? (
             <Pill tone="accent">첫 분석 무료 · 결과물 전부 열람</Pill>
           ) : (
@@ -202,6 +228,19 @@ function FormInner({ live, model, fromId }: { live: boolean; model: string | nul
           <p className="mt-1 text-ink-2">{error}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Button type="button" size="sm" onClick={() => void run()}>다시 시도</Button>
+            {saveError && (
+              <>
+                <Link href="/history" className={btnClass("secondary", "sm")}>내 공고에서 정리하기</Link>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => void navigator.clipboard.writeText(saveError.storyResume.resumeMarkdown).catch(() => undefined)}
+                >
+                  스토리보완 이력서 복사해 두기
+                </Button>
+              </>
+            )}
             {!live && !isSample && (
               <Button type="button" size="sm" variant="secondary" onClick={fillSample}>샘플로 체험하기</Button>
             )}

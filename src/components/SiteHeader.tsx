@@ -41,7 +41,7 @@ export function SiteHeader() {
       <Container className="flex h-14 items-center justify-between gap-3">
         <Link href="/" className="flex items-baseline gap-1 text-[17px] font-black tracking-tight text-ink">
           RoleFit<span className="font-medium text-muted">Canvas</span>
-          <span className="ml-1.5 hidden rounded bg-paper-2 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted sm:inline">beta</span>
+          <span className="ml-1.5 hidden rounded bg-paper-2 px-1.5 py-0.5 text-[10px] font-bold text-muted sm:inline" title="베타 · 후기 수집 전">베타</span>
         </Link>
         <nav className="hidden items-center gap-1 md:flex">
           {NAV.map((n) => (

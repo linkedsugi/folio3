@@ -9,13 +9,15 @@ let call = 0;
 const prompts: string[] = [];
 const fake = {
   messages: {
-    parse: async (params: { messages: { content: string }[]; output_config: { format: { parse: (s: string) => unknown } } }) => {
-      prompts.push(params.messages[0].content);
-      const out = outputs[call++];
-      // 실제 SDK 처럼 스키마 파서를 통과시킨다
-      const parsed = params.output_config.format.parse(JSON.stringify(out));
-      return { parsed_output: parsed, stop_reason: "end_turn" };
-    },
+    stream: (params: { messages: { content: string }[]; output_config: { format: { parse: (s: string) => unknown } } }) => ({
+      finalMessage: async () => {
+        prompts.push(params.messages[0].content);
+        const out = outputs[call++];
+        // 실제 SDK 처럼 스키마 파서를 통과시킨다
+        const parsed = params.output_config.format.parse(JSON.stringify(out));
+        return { parsed_output: parsed, stop_reason: "end_turn" };
+      },
+    }),
   },
 } as unknown as Anthropic;
 
@@ -31,6 +33,6 @@ console.log("posting resolved:", a.posting.company, "·", a.posting.title);
 console.log("face", a.basicResume.faceScore, "story", a.storyResume.storyScore, "verdict", a.verdict, "projected", a.targetResume.projectedScore);
 console.log("reason:", a.verdictReason.slice(0, 40), "...");
 console.log("unlocked default:", a.unlocked, "| mode", a.mode);
-console.log("stage4 prompt mentions 잠정 판정:", prompts[3].includes("잠정 판정"), "| stage5 mentions 보류:", prompts[4].includes("보류"));
+console.log("stage4 prompt mentions 잠정 판정:", prompts[3].includes("잠정 판정"), "| stage5 mentions 보류:", prompts[4].includes("보류"), "| stage5 has posting:", prompts[4].includes("Intel Korea · Gaming Application Engineer"));
 }
 main().catch((e) => { console.error(e); process.exit(1); });

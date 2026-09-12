@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import type { Analysis, Gap, GapCategory } from "@/lib/types";
 import { EFFORT_LABEL, GAP_CATEGORY_META } from "@/lib/scoring";
 import { Markdown } from "../Markdown";
@@ -9,14 +10,13 @@ import { SectionHeader } from "./SectionHeader";
 
 const ORDER: GapCategory[] = ["hidden", "weak", "missing", "hard"];
 
+/** 최소 경로(①②) / 권장 경로(①②③) 예상치 — 점수 산식으로 계산된 값을 그대로 쓴다 (이전 버전 데이터는 합산으로 대체) */
 export function pathScores(a: Analysis) {
+  const t = a.targetResume;
+  if (typeof t.projectedMinimal === "number") return { minimal: t.projectedMinimal, recommended: t.projectedScore };
   const s = a.storyResume.storyScore;
-  const sum = (cats: GapCategory[]) =>
-    a.targetResume.gaps.filter((g) => cats.includes(g.category)).reduce((x, g) => x + g.impact, 0);
-  return {
-    minimal: Math.min(100, s + sum(["hidden", "weak"])),
-    recommended: Math.min(100, s + sum(["hidden", "weak", "missing"])),
-  };
+  const sum = (cats: GapCategory[]) => t.gaps.filter((g) => cats.includes(g.category)).reduce((x, g) => x + g.impact, 0);
+  return { minimal: Math.min(100, s + sum(["hidden", "weak"])), recommended: Math.min(100, s + sum(["hidden", "weak", "missing"])) };
 }
 
 export function TargetSection({
@@ -87,11 +87,26 @@ export function TargetSection({
               return (
                 <li key={cat} className="flex items-center justify-between gap-2 rounded-lg border border-line bg-paper px-4 py-3 text-sm">
                   <span><span className="font-black text-ink">{meta.num}</span> <span className="font-semibold text-ink">{meta.title}</span></span>
-                  <span className="num shrink-0 text-muted">{list.length}건{cat !== "hard" && sum > 0 ? ` · +${sum}%p` : ""}</span>
+                  <span className="num shrink-0 text-muted">{list.length}건{cat !== "hard" && sum > 0 ? ` · 예상 +${sum}%p` : ""}</span>
                 </li>
               );
             })}
           </ul>
+          {gaps.some((g) => g.category === "hard" && g.alternativePath) && (
+            <div className="mt-4 rounded-lg border border-line bg-paper p-4">
+              <div className="text-xs font-bold uppercase tracking-wider text-muted">④ 단기간에 대체하기 어려운 요건 — 대안 경로 (잠금 없이 제공)</div>
+              <ul className="mt-2 space-y-2 text-sm leading-6 text-ink-2">
+                {gaps
+                  .filter((g) => g.category === "hard" && g.alternativePath)
+                  .map((g) => (
+                    <li key={g.id}>
+                      <span className="mr-2"><Pill tone="no">미충족</Pill></span>
+                      <span className="font-semibold text-ink">{g.title}</span> · {g.alternativePath}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          )}
           <p className="mt-3 text-sm"><a href="#gate" className="font-semibold text-accent hover:underline">보강 항목 · 체크리스트 · 재분석 열기 ↑</a></p>
         </>
       )}
@@ -203,6 +218,15 @@ function GapRow({
 }) {
   const hard = gap.category === "hard";
   const inputId = `note-${gap.id}`;
+  // 타자마다 저장소 전체를 다시 쓰지 않도록 로컬 상태로 받고 잠시 뒤 / 포커스 아웃 때 저장한다
+  const [local, setLocal] = useState(note);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  const flush = (value: string) => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+    if (value !== note) onNote(gap.id, value);
+  };
   return (
     <li className={`rounded-lg border p-3.5 sm:p-4 ${done ? "border-apply/40 bg-apply-soft/40" : "border-line bg-paper"}`}>
       <div className="flex items-start gap-3">
@@ -225,7 +249,7 @@ function GapRow({
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
             <span className={`num rounded-md px-1.5 py-0.5 font-semibold ${hard ? "bg-no-soft text-no" : "bg-accent-soft text-accent"}`}>
-              {hard ? `채우면 +${gap.impact}%p 이지만 단기 대체 불가` : `채우면 +${gap.impact}%p 예상`}
+              {hard ? "점수 영향 +0 · 단기 대체 불가" : `채우면 예상 +${gap.impact}%p`}
             </span>
             <span className="text-muted">소요 {EFFORT_LABEL[gap.effort]}</span>
           </div>
@@ -245,8 +269,14 @@ function GapRow({
               <label htmlFor={inputId} className="sr-only">{gap.title} 답변 또는 메모</label>
               <textarea
                 id={inputId}
-                value={note}
-                onChange={(e) => onNote(gap.id, e.target.value)}
+                value={local}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setLocal(v);
+                  if (timer.current) clearTimeout(timer.current);
+                  timer.current = setTimeout(() => flush(v), 500);
+                }}
+                onBlur={() => flush(local)}
                 rows={2}
                 placeholder={gap.category === "hidden" ? "질문에 답해 보세요. 사실만 적으면 다음 분석에서 근거가 됩니다." : "한 일·숫자·산출물을 적어 두세요. 재분석 때 이력에 붙습니다."}
                 className="w-full resize-y rounded-md border border-line bg-card px-3 py-2 text-sm leading-6 text-ink placeholder:text-faint focus:border-accent focus:outline-none"

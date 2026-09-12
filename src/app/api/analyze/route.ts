@@ -1,11 +1,12 @@
 import { z } from "zod";
-import { liveAvailable, modelName, runAnalysis } from "@/lib/ai/pipeline";
+import { liveAvailable, modelName, runAnalysis, toAnalyzeError } from "@/lib/ai/pipeline";
 import type { AnalyzeEvent } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
-const MAX = 30000;
+const MAX_JD = 15000;
+const MAX_RESUME = 20000;
 
 /** 인스턴스 메모리 기반의 단순 속도 제한 — 실제 분석(비용 발생)에만 적용 */
 const WINDOW_MS = 60 * 60 * 1000;
@@ -28,8 +29,8 @@ const BodySchema = z.object({
   id: z.string().min(1).max(64),
   company: z.string().max(200).default(""),
   title: z.string().max(200).default(""),
-  jdText: z.string().max(MAX),
-  resumeText: z.string().max(MAX),
+  jdText: z.string().max(MAX_JD),
+  resumeText: z.string().max(MAX_RESUME),
   demo: z.boolean().default(false),
   parentId: z.string().max(64).nullable().default(null),
 });
@@ -75,10 +76,18 @@ export async function POST(req: Request) {
   }
 
   const encoder = new TextEncoder();
+  const abort = new AbortController();
+  req.signal.addEventListener("abort", () => abort.abort(), { once: true });
+  let closed = false;
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const emit = (e: AnalyzeEvent) => {
-        controller.enqueue(encoder.encode(JSON.stringify(e) + "\n"));
+        if (closed) return;
+        try {
+          controller.enqueue(encoder.encode(JSON.stringify(e) + "\n"));
+        } catch {
+          closed = true;
+        }
       };
       try {
         const analysis = await runAnalysis(
@@ -88,16 +97,29 @@ export async function POST(req: Request) {
             candidate: { resumeText: body.resumeText },
             parentId: body.parentId,
             demo,
+            signal: abort.signal,
           },
           emit,
         );
         emit({ type: "result", data: analysis });
       } catch (err) {
-        const message = err instanceof Error ? err.message : "알 수 없는 오류";
-        emit({ type: "error", message: `분석이 중단됐습니다. ${message}` });
+        const mapped = toAnalyzeError(err);
+        if (mapped.code !== "aborted") console.error("[rolefit] analyze failed:", err instanceof Error ? err.message : err);
+        emit({ type: "error", code: mapped.code, message: `분석이 중단됐습니다. ${mapped.message}` });
       } finally {
-        controller.close();
+        if (!closed) {
+          closed = true;
+          try {
+            controller.close();
+          } catch {
+            /* already closed */
+          }
+        }
       }
+    },
+    cancel() {
+      closed = true;
+      abort.abort();
     },
   });
 

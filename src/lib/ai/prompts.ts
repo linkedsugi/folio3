@@ -11,7 +11,7 @@ export const SYSTEM_PROMPT = `당신은 RoleFit Canvas 의 분석 엔진이다. 
 
 냉정함의 규칙. 갈음 주장마다 이력 속 실제 경험이 근거로 붙어야 하고, 근거 없는 주장은 점수에 반영하지 않는다. 이력 원문에 없는 사실을 만들어 내지 않는다. 인용은 원문 그대로 한다. 과장하지 않는다. 그래야 80%가 희망이 아니라 판단이 된다.
 
-출력 언어: 한국어 (고유명사·기술 용어는 원문 표기 유지). 존댓말이 아닌 서술체("~이다/~했다")로 간결하게 쓴다. 이모지와 느낌표를 쓰지 않는다.`;
+출력 언어: 한국어 (고유명사·기술 용어는 원문 표기 유지). 취준생이 화면에서 읽는 설명·논증·판정 근거·보강 행동(actualWork, intent, signal, note, argument, answer, action, alternativePath, verdictReason)은 존댓말("~합니다/~입니다")로 간결하게 쓴다. 이력서 본문(resumeMarkdown)과 bullets, label, claim, personProfile, personTraits, title 은 명사형·간결체로 쓴다. 이모지와 느낌표를 쓰지 않는다.`;
 
 export function managerPrompt(jdText: string, company: string, title: string): string {
   const head = [company && `회사명(사용자 입력): ${company}`, title && `직무명(사용자 입력): ${title}`]
@@ -167,6 +167,7 @@ ${resumeText}`;
 
 /** 5단계(짧은 호출) · 코드가 확정한 판정에 대한 근거 문단 */
 export function reasonPrompt(
+  posting: { company: string; title: string },
   view: ManagerView,
   basic: BasicResume,
   story: StoryResume,
@@ -177,7 +178,8 @@ export function reasonPrompt(
   const gap = Math.max(0, 80 - story.storyScore);
   return `[판정 근거 작성]
 
-공고: ${view.personProfile}
+공고: ${[posting.company, posting.title].filter(Boolean).join(" · ") || "(회사·직무 미상)"}
+사람의 상: ${view.personProfile}
 액면 충족률 ${basic.faceScore}% → 스토리보완 후 ${story.storyScore}% · 합격선 80% (${gap > 0 ? `${gap}%p 부족` : "통과"})
 보강 로드맵(①②③)을 모두 채우면 예상 ${projectedScore}%
 최종 판정 (코드가 규칙으로 확정, 바꾸지 말 것): ${VERDICT_LABEL[verdict]}
@@ -186,8 +188,8 @@ export function reasonPrompt(
 보강 항목:
 ${gapLines.map((l) => `- ${l}`).join("\n")}
 
-판정 근거를 한 문단(3~4문장)으로 써라. 숫자와 근거를 들어 냉정하게. 위로 문구 금지. 첫 문장은 판정과 그 이유, 가운데는 무엇이 반영되고 무엇이 미반영됐는지, 마지막 문장은 다음 행동 하나.
-비추천이면 첫 문장을 "이것은 역량이 아니라 이 공고와 지금 이력의 거리에 대한 판정이다."로 시작한다.
+판정 근거를 한 문단(3~4문장)으로 존댓말("~입니다/~합니다")로 써라. 숫자와 근거를 들어 냉정하게. 위로 문구 금지. 첫 문장은 판정과 그 이유, 가운데는 무엇이 반영되고 무엇이 미반영됐는지, 마지막 문장은 다음 행동 하나.
+비추천이면 첫 문장을 "이것은 역량이 아니라 이 공고와 지금 이력의 거리에 대한 판정입니다."로 시작한다.
 보류면 ①②만 채웠을 때와 ③까지 채웠을 때 예상치를 언급하지 말고, 어떤 갈래를 먼저 채우면 되는지만 말한다.
 지원이면 어떤 근거가 합격선을 넘게 했는지 말하고, 더 올릴 여지 하나를 언급한다.`;
 }

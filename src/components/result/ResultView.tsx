@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import type { Analysis, Verdict } from "@/lib/types";
-import { VERDICT_LABEL } from "@/lib/scoring";
+import { VERDICT_LABEL, fmtScore } from "@/lib/scoring";
 import { COPY, formatDate } from "@/lib/copy";
 import { lineage, unlockAnalysis, updateNote, updateProgress } from "@/lib/storage";
 import { useAnalyses, useCredits } from "@/lib/useStorage";
@@ -29,7 +29,7 @@ const NAV = [
 function headline(v: Verdict, story: number, passLine: number): string {
   const gap = passLine - story;
   if (v === "apply") return `스토리보완 ${story}% · 합격선 ${passLine}%를 넘었습니다. 지원할 이유가 있습니다.`;
-  if (v === "hold") return `스토리보완 ${story}% · 합격선까지 ${gap}%p. 지금은 아니지만, 길은 있습니다.`;
+  if (v === "hold") return `스토리보완 ${story}% · 합격선까지 ${Math.max(1, gap)}%p. 지금은 아니지만, 길은 있습니다.`;
   return `스토리보완 ${story}% · 이 공고는 지금의 이력으로 설득하기 어렵습니다.`;
 }
 
@@ -117,7 +117,7 @@ export function ResultView({ analysis: stored, isSample }: { analysis: Analysis;
           </div>
           <div>
             <div className="text-xs text-muted">스토리보완</div>
-            <div className="num text-3xl font-black text-ink sm:text-4xl">{story.storyScore}%</div>
+            <div className="num text-3xl font-black text-ink sm:text-4xl">{fmtScore(story.storyScoreExact, story.storyScore)}%</div>
           </div>
           <div>
             <div className="text-xs text-muted">합격선</div>
@@ -196,7 +196,8 @@ function NextActions({ analysis, isSample, locked }: { analysis: Analysis; isSam
       </div>
       <p className="mt-3 text-base leading-7 text-ink">{COPY.verdict[v]}</p>
       <div className="mt-4 flex flex-wrap gap-2">
-        {locked && <a href="#gate" className={btnClass("primary")}>이력서 전문과 보강 체크리스트 열기</a>}
+        {locked && v === "not_recommended" && <a href="#s3" className={btnClass("primary")}>④ 대안 경로 보기</a>}
+        {locked && <a href="#gate" className={btnClass(v === "not_recommended" ? "secondary" : "primary")}>이력서 전문과 보강 체크리스트 열기</a>}
         {!locked && v === "apply" && (
           <>
             <CopyButton text={analysis.storyResume.resumeMarkdown} label="스토리보완 이력서 복사하기" size="md" variant="primary" />
@@ -217,7 +218,7 @@ function NextActions({ analysis, isSample, locked }: { analysis: Analysis; isSam
         )}
       </div>
       <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-sm">
-        <Link href="/history" className="text-accent hover:underline">결과 저장됨 · 내 분석 목록</Link>
+        <Link href="/history" className="text-accent hover:underline">결과 저장됨 · 내 공고</Link>
         <Link href="/analyze" className="text-accent hover:underline">다른 공고 분석하기</Link>
       </div>
       {isSample && (

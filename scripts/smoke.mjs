@@ -45,6 +45,9 @@ for (const width of [400, 1280]) {
   const checked = await p.locator('input[type="checkbox"]').first().isChecked();
   console.log(width, "checkbox persisted:", checked);
   if (!checked) errors.push("checkbox did not persist");
+  // sample analysis must not consume the first-free entitlement
+  const creditsAfterSample = await p.evaluate(() => JSON.parse(localStorage.getItem("rolefit:credits:v1") || "{}"));
+  if (creditsAfterSample.firstFreeUsed) errors.push("sample analysis consumed first-free");
   // history shows it
   await p.goto(BASE + "/history", { waitUntil: "networkidle" });
   await shoot(p, `${width}-history-filled`);
@@ -58,6 +61,10 @@ for (const width of [400, 1280]) {
   });
   await p.goto(BASE + "/result/locked1", { waitUntil: "networkidle" });
   await shoot(p, `${width}-result-locked`);
+  // header numbers and verdict are visible while details are locked
+  const lockedText = await p.locator("#top").innerText();
+  if (!/보류|지원|비추천/.test(lockedText)) errors.push("locked result hides verdict");
+  if ((await p.locator("#s22").count()) === 0) errors.push("locked result missing 2-2 summary");
   await p.getByRole("button", { name: /베타 크레딧으로 열기 \(남은/ }).click();
   await p.getByRole("dialog").getByRole("button", { name: "베타 크레딧으로 열기" }).click();
   await p.waitForTimeout(500);

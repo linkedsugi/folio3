@@ -6,7 +6,7 @@ import {
   toTargetResume,
 } from "./assemble";
 import type { BasicStage, ManagerStage, StoryStage, TargetStage } from "./schemas";
-import type { Analysis, AnalysisMode, CandidateInput, JobPosting } from "./types";
+import { PASS_LINE, type Analysis, type AnalysisMode, type CandidateInput, type JobPosting } from "./types";
 
 /**
  * 데모 샘플 — Intel · Gaming Application Engineer 공고에
@@ -75,7 +75,7 @@ const manager: ManagerStage = {
   company: "Intel Korea",
   title: "Gaming Application Engineer",
   actualWork:
-    "국내 게임 개발사가 Intel 플랫폼(CPU·GPU)에서 게임 성능을 끌어올리도록 현장에서 돕는 일이다. 개발사 엔지니어와 함께 프레임을 프로파일링해 병목을 찾고 최적화 가이드를 주며, 그 과정에서 드러난 드라이버·하드웨어 이슈를 본사 엔지니어링 팀에 정확히 전달한다.",
+    "국내 게임 개발사가 Intel 플랫폼(CPU·GPU)에서 게임 성능을 끌어올리도록 현장에서 돕는 일입니다. 개발사 엔지니어와 함께 프레임을 프로파일링해 병목을 찾고 최적화 가이드를 주며, 그 과정에서 드러난 드라이버·하드웨어 이슈를 본사 엔지니어링 팀에 정확히 전달합니다.",
   personProfile: "게임사 핵심 엔지니어와 막힘없이 기술 대화를 나누며 성능 문제를 함께 푸는 AE",
   personTraits: [
     "렌더링 파이프라인 수준에서 성능 문제를 읽는다",
@@ -175,7 +175,7 @@ const manager: ManagerStage = {
 };
 
 const basic: BasicStage = {
-  summary: "컴퓨터공학 학사(2025.02 졸업). 자체 C++/Vulkan 렌더링 엔진 프로젝트와 게임 그래픽 분석 연재, 기술지원 인턴 3개월. 게임사 근무 경력은 없다.",
+  summary: "컴퓨터공학 학사(2025.02 졸업)입니다. 자체 C++/Vulkan 렌더링 엔진 프로젝트와 게임 그래픽 분석 연재, 기술지원 인턴 3개월이 있고, 게임사 근무 경력은 없습니다.",
   sections: [
     {
       title: "학력",
@@ -207,16 +207,16 @@ const basic: BasicStage = {
     },
   ],
   matches: [
-    { itemId: "j1", level: "unmet", evidence: null, note: "게임 개발사 근무 경력이 없다. 액면으로는 0년." },
-    { itemId: "j2", level: "met", evidence: "Vulkan 기반 디퍼드 렌더러 구현, PBR 머티리얼, 섀도 매핑", note: "C++로 Vulkan 렌더러를 직접 구현했다. 액면 충족." },
-    { itemId: "j3", level: "met", evidence: "RenderDoc과 Nsight Graphics로 프레임 병목을 분석해 드로우콜 배칭과 디스크립터 캐싱으로 평균 프레임 시간 20% 단축", note: "도구와 수치가 있는 최적화 경험. 액면 충족." },
-    { itemId: "j4", level: "partial", evidence: "Unity 인디 게임잼 48시간 참여", note: "Unity는 48시간 게임잼 1회뿐이고 Unreal 경험이 없다. 실무 경험이라 보기 어렵다." },
-    { itemId: "j5", level: "partial", evidence: "TOEIC 900 (2024.05), OPIc IH (2024.06)", note: "어학 점수는 있으나 영어로 기술 이슈를 주고받은 실무 경험은 없다." },
-    { itemId: "j6", level: "met", evidence: "한국대학교 컴퓨터공학과 학사", note: "전공 학사 충족." },
-    { itemId: "j7", level: "unmet", evidence: null, note: "GPU 아키텍처나 드라이버를 다룬 흔적이 없다." },
-    { itemId: "j8", level: "partial", evidence: "고객사 개발자 문의 대응 (주 15건 내외), 재현 환경 구성, 이슈 트래킹 및 개발팀 전달", note: "기술지원 인턴 3개월. 게임 개발사 대상은 아니다." },
-    { itemId: "j9", level: "met", evidence: "「인기 게임 5종의 그래픽 파이프라인 분석」 연재", note: "연재 문서(누적 조회 1.2만)와 FAQ 문서, 영어 발표 2회. 액면 충족." },
-    { itemId: "j10", level: "met", evidence: "국내외 출장 가능", note: "명시돼 있다." },
+    { itemId: "j1", level: "unmet", evidence: null, note: "게임 개발사 근무 경력이 없습니다. 액면으로는 0년입니다." },
+    { itemId: "j2", level: "met", evidence: "Vulkan 기반 디퍼드 렌더러 구현, PBR 머티리얼, 섀도 매핑", note: "C++로 Vulkan 렌더러를 직접 구현했습니다. 액면 충족입니다." },
+    { itemId: "j3", level: "met", evidence: "RenderDoc과 Nsight Graphics로 프레임 병목을 분석해 드로우콜 배칭과 디스크립터 캐싱으로 평균 프레임 시간 20% 단축", note: "도구와 수치가 있는 최적화 경험입니다. 액면 충족입니다." },
+    { itemId: "j4", level: "partial", evidence: "Unity 인디 게임잼 48시간 참여", note: "Unity는 48시간 게임잼 1회뿐이고 Unreal 경험이 없습니다. 실무 경험이라 보기 어렵습니다." },
+    { itemId: "j5", level: "partial", evidence: "TOEIC 900 (2024.05), OPIc IH (2024.06)", note: "어학 점수는 있으나 영어로 기술 이슈를 주고받은 실무 경험은 없습니다." },
+    { itemId: "j6", level: "met", evidence: "한국대학교 컴퓨터공학과 학사", note: "전공 학사를 충족합니다." },
+    { itemId: "j7", level: "unmet", evidence: null, note: "GPU 아키텍처나 드라이버를 다룬 흔적이 없습니다." },
+    { itemId: "j8", level: "partial", evidence: "고객사 개발자 문의 대응 (주 15건 내외), 재현 환경 구성, 이슈 트래킹 및 개발팀 전달", note: "기술지원 인턴 3개월입니다. 게임 개발사 대상은 아닙니다." },
+    { itemId: "j9", level: "met", evidence: "「인기 게임 5종의 그래픽 파이프라인 분석」 연재", note: "연재 문서(누적 조회 1.2만)와 FAQ 문서, 영어 발표 2회가 있습니다. 액면 충족입니다." },
+    { itemId: "j10", level: "met", evidence: "국내외 출장 가능", note: "명시돼 있습니다." },
   ],
 };
 
@@ -225,7 +225,7 @@ const story: StoryStage = {
   answers: [
     {
       question: "게임사 엔지니어와 기술 대화가 되는가?",
-      answer: "게임사 근무 이력은 없지만, 렌더링 파이프라인을 직접 구현하고 상용 게임의 렌더링 기법을 분석해 온 만큼 엔진 수준의 기술 대화가 가능하다.",
+      answer: "게임사 근무 이력은 없지만, 렌더링 파이프라인을 직접 구현하고 상용 게임의 렌더링 기법을 분석해 온 만큼 엔진 수준의 기술 대화가 가능합니다.",
       bullets: [
         "Vulkan 기반 디퍼드 렌더러(PBR·섀도 매핑) 직접 구현 — 졸업 프로젝트 Aurora, 2024",
         "인기 게임 5종의 그래픽 파이프라인 분석 연재, 누적 조회 1.2만 — 2024",
@@ -234,12 +234,12 @@ const story: StoryStage = {
     },
     {
       question: "프레임 병목을 직접 찾아 개선해 본 적이 있는가?",
-      answer: "RenderDoc과 Nsight Graphics로 병목을 분석하고 구조를 바꿔 수치로 개선했다.",
+      answer: "RenderDoc과 Nsight Graphics로 병목을 분석하고 구조를 바꿔 수치로 개선했습니다.",
       bullets: ["드로우콜 배칭·디스크립터 캐싱으로 평균 프레임 시간 20% 단축 (1080p 41fps → 49fps) — Aurora, 2024"],
     },
     {
       question: "외부 개발자를 상대로 기술 지원을 끝까지 해 본 적이 있는가?",
-      answer: "B2B SaaS 기술지원 인턴으로 외부 개발자의 문의를 받아 재현하고 개발팀에 전달하는 과정을 3개월간 반복했다.",
+      answer: "B2B SaaS 기술지원 인턴으로 외부 개발자의 문의를 받아 재현하고 개발팀에 전달하는 과정을 3개월간 반복했습니다.",
       bullets: [
         "고객사 개발자 문의 주 15건 대응, 재현 환경 구성, 이슈 트래킹·개발팀 전달 — 2022",
         "자주 묻는 기술 문의를 FAQ 문서로 정리 — 2022",
@@ -247,7 +247,7 @@ const story: StoryStage = {
     },
     {
       question: "본사 엔지니어와 영어로 기술 이슈를 주고받을 수 있는가?",
-      answer: "교환학생 Computer Graphics 팀 프로젝트에서 영어 발표를 했고 TOEIC 900·OPIc IH가 있다. 다만 실무 수준의 근거로는 약하다.",
+      answer: "교환학생 Computer Graphics 팀 프로젝트에서 영어 발표를 했고 TOEIC 900·OPIc IH가 있습니다. 다만 실무 수준의 근거로는 약합니다.",
       bullets: ["Computer Graphics 수업 팀 프로젝트, 영어 발표 2회 — 2023", "TOEIC 900, OPIc IH — 2024"],
     },
   ],
@@ -256,7 +256,7 @@ const story: StoryStage = {
       itemId: "j1",
       claim: "경력 5년 → 게임 기술 특성 이해 + 핵심 기술 프로젝트",
       argument:
-        "부서장이 경력 5년으로 담보하려던 것은 게임사 엔지니어와 막힘없이 기술 대화를 나누는 능력이다. 상용 게임 5종의 렌더링 파이프라인을 분석해 정리했고, Vulkan 디퍼드 렌더러를 직접 구현했으며, 오픈소스 렌더링 엔진에 기여했다. 게임 개발의 핵심 기술을 다뤄 봤으므로 엔진 수준의 대화는 가능하다. 다만 상용 타이틀 출시 경험은 없어 부분 충족까지다.",
+        "부서장이 경력 5년으로 담보하려던 것은 게임사 엔지니어와 막힘없이 기술 대화를 나누는 능력입니다. 상용 게임 5종의 렌더링 파이프라인을 분석해 정리했고, Vulkan 디퍼드 렌더러를 직접 구현했으며, 오픈소스 렌더링 엔진에 기여했습니다. 게임 개발의 핵심 기술을 다뤄 봤으므로 엔진 수준의 대화는 가능합니다. 다만 상용 타이틀 출시 경험은 없어 부분 충족까지입니다.",
       evidence: [
         { quote: "Vulkan 기반 디퍼드 렌더러 구현, PBR 머티리얼, 섀도 매핑", source: "졸업 프로젝트 Aurora (2024)" },
         { quote: "인기 게임 5종의 그래픽 파이프라인 분석", source: "블로그 연재 (2024.06 –)" },
@@ -264,48 +264,48 @@ const story: StoryStage = {
       ],
       evidenceStatus: "grounded",
       level: "partial",
-      note: "근거 있음 — 부분 충족으로 반영. 상용 타이틀 경험이 없어 충족까지는 올리지 않았다.",
+      note: "근거 있음 — 부분 충족으로 반영합니다. 상용 타이틀 경험이 없어 충족까지는 올리지 않았습니다.",
     },
     {
       itemId: "j4",
       claim: "엔진 실무 경험 → 엔진 구조 이해 + 게임잼 완성 경험",
       argument:
-        "자체 엔진을 만들어 봤기에 상용 엔진의 렌더링 구조를 빠르게 읽을 수 있고, Unity 게임잼에서 클라이언트를 맡아 게임을 완성했다.",
+        "자체 엔진을 만들어 봤기에 상용 엔진의 렌더링 구조를 빠르게 읽을 수 있고, Unity 게임잼에서 클라이언트를 맡아 게임을 완성했습니다.",
       evidence: [{ quote: "Unity 인디 게임잼 48시간 참여 (4인 팀, 클라이언트 프로그래밍 담당, 2D 액션 게임 완성)", source: "게임잼 (2023.08)" }],
       evidenceStatus: "weak",
       level: "partial",
-      note: "근거 부족 — 점수 미반영. 48시간 게임잼 1회로 실무 경험을 갈음하기엔 약하고, Unreal 경험이 없다.",
+      note: "근거 부족 — 점수 미반영. 48시간 게임잼 1회로 실무 경험을 갈음하기엔 약하고, Unreal 경험이 없습니다.",
     },
     {
       itemId: "j5",
       claim: "영어 기술 커뮤니케이션 → 영어 기술 발표 경험",
-      argument: "교환학생 Computer Graphics 팀 프로젝트에서 영어로 기술 발표를 두 차례 했다. 어학 점수(TOEIC 900, OPIc IH)도 갖추고 있다.",
+      argument: "교환학생 Computer Graphics 팀 프로젝트에서 영어로 기술 발표를 두 차례 했습니다. 어학 점수(TOEIC 900, OPIc IH)도 갖추고 있습니다.",
       evidence: [{ quote: "Computer Graphics 수업 팀 프로젝트, 영어 발표 2회", source: "교환학생 (2023 가을)" }],
       evidenceStatus: "weak",
       level: "partial",
-      note: "근거 부족 — 점수 미반영. 수업 발표 2회는 본사 엔지니어와의 기술 협업을 담보하기엔 약하다.",
+      note: "근거 부족 — 점수 미반영. 수업 발표 2회는 본사 엔지니어와의 기술 협업을 담보하기엔 약합니다.",
     },
     {
       itemId: "j7",
       claim: "GPU 아키텍처 이해 → 프레임 병목 분석 실습",
-      argument: "Nsight Graphics로 프레임 병목을 분석한 경험이 있어 GPU 파이프라인의 단계별 동작을 실습 수준에서 안다.",
+      argument: "Nsight Graphics로 프레임 병목을 분석한 경험이 있어 GPU 파이프라인의 단계별 동작을 실습 수준에서 압니다.",
       evidence: [{ quote: "RenderDoc과 Nsight Graphics로 프레임 병목을 분석해", source: "졸업 프로젝트 Aurora (2024)" }],
       evidenceStatus: "weak",
       level: "partial",
-      note: "근거 부족 — 점수 미반영. 프로파일링 도구 사용은 있으나 GPU 아키텍처·드라이버 동작을 다룬 근거가 아니다.",
+      note: "근거 부족 — 점수 미반영. 프로파일링 도구 사용은 있으나 GPU 아키텍처·드라이버 동작을 다룬 근거가 아닙니다.",
     },
     {
       itemId: "j8",
       claim: "파트너사 기술 지원 → 외부 개발자 이슈 대응 프로세스 경험",
       argument:
-        "게임사 대상은 아니지만 외부 개발자의 문의를 받아 재현하고 개발팀에 전달하는 기술 지원의 전 과정을 3개월간 수행했다. FAQ 문서화까지 했으므로 부서장이 원하는 '문제를 받아 끝까지 끌고 가는' 능력의 근거가 된다.",
+        "게임사 대상은 아니지만 외부 개발자의 문의를 받아 재현하고 개발팀에 전달하는 기술 지원의 전 과정을 3개월간 수행했습니다. FAQ 문서화까지 했으므로 부서장이 원하는 '문제를 받아 끝까지 끌고 가는' 능력의 근거가 됩니다.",
       evidence: [
         { quote: "고객사 개발자 문의 대응 (주 15건 내외), 재현 환경 구성, 이슈 트래킹 및 개발팀 전달", source: "기술지원 인턴 (2022.07 – 2022.09)" },
         { quote: "자주 묻는 기술 문의를 정리한 FAQ 문서 작성", source: "기술지원 인턴 (2022)" },
       ],
       evidenceStatus: "grounded",
       level: "met",
-      note: "근거 있음 — 충족으로 반영. 처리 건수와 프로세스가 원문에 있다.",
+      note: "근거 있음 — 충족으로 반영합니다. 처리 건수와 프로세스가 원문에 있습니다.",
     },
   ],
   resumeMarkdown: `# 김도윤 — 게임사 엔지니어와 렌더링 파이프라인 수준의 기술 대화가 가능한 그래픽스 엔지니어
@@ -340,7 +340,7 @@ const target: TargetStage = {
       itemId: "j5",
       category: "hidden",
       title: "영어 기술 커뮤니케이션 실증",
-      action: "교환학생·오픈소스·인턴 기간에 영어로 기술 토론을 한 사실이 있다면 이력에 구체적으로 적는다. 특히 bgfx PR 리뷰는 영어로 진행됐을 가능성이 높다.",
+      action: "교환학생·오픈소스·인턴 기간에 영어로 기술 토론을 한 사실이 있다면 이력에 구체적으로 적습니다. 특히 bgfx PR 리뷰는 영어로 진행됐을 가능성이 높습니다.",
       effort: "days",
       questions: [
         "bgfx 버그 수정 PR에서 메인테이너와 영어로 코드 리뷰를 주고받았나요? 몇 차례 어떤 내용이었나요?",
@@ -353,7 +353,7 @@ const target: TargetStage = {
       itemId: "j7",
       category: "weak",
       title: "GPU 병목 분석 자료 구체화",
-      action: "Aurora 최적화 과정의 Nsight 캡처를 정리해 GPU 파이프라인 단계별(버텍스·픽셀·메모리 대역폭) 병목 분석 글 1편을 블로그 연재에 추가하고, 이력에 링크와 핵심 수치를 붙인다.",
+      action: "Aurora 최적화 과정의 Nsight 캡처를 정리해 GPU 파이프라인 단계별(버텍스·픽셀·메모리 대역폭) 병목 분석 글 1편을 블로그 연재에 추가하고, 이력에 링크와 핵심 수치를 붙입니다.",
       effort: "weeks",
       questions: null,
       alternativePath: null,
@@ -362,7 +362,7 @@ const target: TargetStage = {
       itemId: "j4",
       category: "weak",
       title: "게임잼 산출물 구체화",
-      action: "게임잼 결과물의 플레이 영상·저장소 링크를 붙이고, 담당한 시스템(입력·애니메이션·충돌)과 코드 규모를 이력에 명시한다.",
+      action: "게임잼 결과물의 플레이 영상·저장소 링크를 붙이고, 담당한 시스템(입력·애니메이션·충돌)과 코드 규모를 이력에 명시합니다.",
       effort: "days",
       questions: null,
       alternativePath: null,
@@ -371,7 +371,7 @@ const target: TargetStage = {
       itemId: "j4",
       category: "missing",
       title: "Unreal 렌더링 플러그인 4주 프로젝트",
-      action: "Unreal Engine 5에서 커스텀 렌더 패스 플러그인 하나를 완성하고 Unreal Insights로 프로파일링한 결과를 정리한다. 상용 엔진 구조 안에서 문제를 재현·해결한 근거가 된다.",
+      action: "Unreal Engine 5에서 커스텀 렌더 패스 플러그인 하나를 완성하고 Unreal Insights로 프로파일링한 결과를 정리합니다. 상용 엔진 구조 안에서 문제를 재현·해결한 근거가 됩니다.",
       effort: "weeks",
       questions: null,
       alternativePath: null,
@@ -380,11 +380,11 @@ const target: TargetStage = {
       itemId: "j1",
       category: "hard",
       title: "게임 개발 경력 5년",
-      action: "경력 연수는 단기간에 만들 수 없다. 미충족으로 표시하되, 부서장이 담보하려던 '기술 대화 능력'을 직접 입증하는 경로를 택한다.",
+      action: "경력 연수는 단기간에 만들 수 없습니다. 미충족으로 표시하되, 부서장이 담보하려던 '기술 대화 능력'을 직접 입증하는 경로를 택합니다.",
       effort: "months",
       questions: null,
       alternativePath:
-        "게임사 기술협력·최적화 인턴이나 계약직으로 현장 경험을 쌓거나, 게임 개발자 밋업에서 렌더링 최적화 발표를 해 게임사 엔지니어와의 기술 대화를 공개적으로 증명한다.",
+        "게임사 기술협력·최적화 인턴이나 계약직으로 현장 경험을 쌓거나, 게임 개발자 밋업에서 렌더링 최적화 발표를 해 게임사 엔지니어와의 기술 대화를 공개적으로 증명합니다.",
     },
   ],
   timeline: "4~6주 (①②는 1주 내, ③은 4주)",
@@ -415,8 +415,13 @@ const target: TargetStage = {
 - 게임 개발 경력 5년: 미충족. 대안 경로 — 게임사 기술협력 인턴·계약직, 게임 개발자 밋업 렌더링 최적화 발표`,
 };
 
-const verdictReason =
-  "보류다. 스토리보완 후 72%로 합격선 80%까지 8%p 부족하지만, 보강 로드맵으로 닿을 수 있는 거리다. 경력 5년 항목은 렌더링 엔진 프로젝트와 게임 그래픽 분석으로 부분 갈음됐고 파트너 기술 지원은 인턴 이력으로 충족됐지만, 엔진 실무·영어 기술 커뮤니케이션·GPU 아키텍처는 근거가 약해 점수에 넣지 않았다. 목표 이력서의 ① 영어 기술 커뮤니케이션 사실 확인과 ② GPU 병목 분석 자료 구체화부터 채운 뒤 지원한다.";
+/** 판정 근거 — 계산된 숫자로 조립한다 (숫자가 바뀌어도 문장이 어긋나지 않게) */
+function sampleVerdictReason(storyScore: number, passLine: number): string {
+  const gap = Math.max(0, passLine - storyScore);
+  return `보류입니다. 스토리보완 후 ${storyScore}%로 합격선 ${passLine}%까지 ${gap}%p 부족하지만, 보강 로드맵으로 닿을 수 있는 거리입니다. 경력 5년 항목은 렌더링 엔진 프로젝트와 게임 그래픽 분석으로 부분 갈음됐고 파트너 기술 지원은 인턴 이력으로 충족됐지만, 엔진 실무·영어 기술 커뮤니케이션·GPU 아키텍처는 근거가 약해 점수에 넣지 않았습니다. 목표 이력서의 ① 영어 기술 커뮤니케이션 사실 확인과 ② GPU 병목 분석 자료 구체화부터 채운 뒤 지원합니다.`;
+}
+
+const verdictReason = sampleVerdictReason(72, 80);
 
 export const SAMPLE_STAGES = { posting, candidate, manager, basic, story, target, verdictReason };
 
@@ -435,7 +440,7 @@ export function buildSampleAnalysis(opts?: { id?: string; createdAt?: string; mo
     basicResume,
     storyResume,
     targetResume,
-    verdictReason,
+    verdictReason: sampleVerdictReason(storyResume.storyScore, PASS_LINE),
   });
   return { ...a, unlocked: true, unlockedBy: "sample" };
 }

@@ -51,8 +51,8 @@ export function ScoreSheet({ view, basic, story }: { view: ManagerView; basic: B
               <tr className="font-semibold text-ink">
                 <td className="py-2 pr-2" colSpan={2}>합계</td>
                 <td className="num py-2 pr-2 text-right">{total}</td>
-                <td className="num py-2 pr-2">{facePts} → {Math.round((facePts / total) * 100)}%</td>
-                <td className="num py-2 pr-2">{storyPts} → {Math.round((storyPts / total) * 100)}%</td>
+                <td className="num py-2 pr-2">{facePts} → {total > 0 ? Math.round((facePts / total) * 100) : 0}%</td>
+                <td className="num py-2 pr-2">{storyPts} → {total > 0 ? Math.round((storyPts / total) * 100) : 0}%</td>
                 <td className="py-2" />
               </tr>
             </tfoot>

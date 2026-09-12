@@ -89,8 +89,10 @@ export interface BasicResume {
   summary: string;
   sections: ResumeSection[];
   matches: FaceMatch[];
-  /** 액면 충족률 0–100 */
+  /** 액면 충족률 0–100 (표시용 정수) */
   faceScore: number;
+  /** 반올림 전 값 — 판정은 이 값으로 내린다 */
+  faceScoreExact: number;
 }
 
 export interface EvidenceQuote {
@@ -130,8 +132,10 @@ export interface StoryResume {
   /** 부서장이 읽고 싶은 순서로 재배열한 이력 */
   answers: ManagerAnswer[];
   arguments: StoryArgument[];
-  /** 스토리보완 후 충족률 0–100 */
+  /** 스토리보완 후 충족률 0–100 (표시용 정수) */
   storyScore: number;
+  /** 반올림 전 값 — 판정은 이 값으로 내린다 */
+  storyScoreExact: number;
   /** 제출용 스토리보완 이력서 전문 (markdown) */
   resumeMarkdown: string;
 }
@@ -143,8 +147,10 @@ export interface Gap {
   title: string;
   /** 무엇을 하면 되는가 */
   action: string;
-  /** 보강 시 올라가는 충족률 포인트 */
+  /** 보강 시 올라가는 충족률 포인트 (표시용 반올림) */
   impact: number;
+  /** 반올림 전 값 */
+  impactExact: number;
   effort: "days" | "weeks" | "months";
   /** category === "hidden" 일 때 사실 확인 질문 */
   questions?: string[];
@@ -155,8 +161,12 @@ export interface Gap {
 /** 결과물 3 · 목표 이력서 */
 export interface TargetResume {
   gaps: Gap[];
-  /** 모든 보강을 마쳤을 때 예상 충족률 */
+  /** 권장 경로(①②③)를 모두 채웠을 때 예상 충족률 (정수) — 점수 산식으로 정확히 재계산한 값 */
   projectedScore: number;
+  projectedScoreExact: number;
+  /** 최소 경로(①②)만 채웠을 때 예상 충족률 (정수) */
+  projectedMinimal: number;
+  projectedMinimalExact: number;
   /** 보강 예상 기간 */
   timeline: string;
   /** 보강 후 제출을 목표로 하는 이력서 (보강 예정 항목은 [보강 예정] 표시) */
@@ -207,4 +217,4 @@ export type AnalyzeEvent =
   | { type: "partial"; stage: "basic"; data: BasicResume }
   | { type: "partial"; stage: "story"; data: StoryResume }
   | { type: "result"; data: Analysis }
-  | { type: "error"; message: string };
+  | { type: "error"; message: string; code?: "rate_limited" | "auth" | "connection" | "refusal" | "parse" | "aborted" | "server" };

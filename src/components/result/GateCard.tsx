@@ -17,19 +17,19 @@ export function GateCard({
   onUnlock: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const candidates = analysis.basicResume.matches.filter((m) => m.level !== "met").length;
-  const total = analysis.managerView.items.length;
+  const counted = analysis.storyResume.arguments.filter((a) => a.counted).length;
+  const uncounted = analysis.storyResume.arguments.length - counted;
   const available = credits.purchased + credits.beta;
 
   return (
     <section id="gate" className="card scroll-mt-28 border-2 border-dashed border-line-2 p-5 sm:p-7">
-      <div className="inline-flex items-center rounded-md bg-ink px-2 py-0.5 text-[11px] font-bold tracking-wide text-white">결과물 2-2 · 3 · 판정</div>
+      <div className="inline-flex items-center rounded-md bg-ink px-2 py-0.5 text-[11px] font-bold tracking-wide text-white">결과물 2-2 · 3 상세</div>
       <h2 className="mt-2 text-xl font-bold text-ink sm:text-2xl">갈음 논증 상세 · 스토리보완 이력서 본문 · 목표 이력서 체크리스트 — 잠겨 있음</h2>
       <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-2">
         판정과 숫자는 위에서 그대로 볼 수 있습니다. 잠긴 것은 제출물입니다 — 항목별 논증 본문과 이력 원문 근거, 부서장이 읽고 싶은 순서로 재배열한 이력서 전문(복사·다운로드·인쇄), 그리고 네 갈래 보강 항목과 체크리스트·재분석입니다.
       </p>
       <p className="num mt-3 rounded-lg bg-paper px-4 py-3 text-sm text-ink">
-        이 공고에서 갈음 후보로 식별된 항목: <b>{candidates}개</b> / 전체 {total}개
+        갈음 논증이 점수에 반영된 항목 <b>{counted}개</b> · 미반영 <b>{uncounted}개</b> — 열면 각 논증의 본문과 이력 원문 근거를 볼 수 있습니다
       </p>
       <ul className="mt-4 grid gap-2 text-sm text-ink-2 sm:grid-cols-3">
         <li className="rounded-lg border border-line bg-paper px-3 py-2.5">갈음 논증마다 붙는 이력 원문 근거와 논증 본문</li>

@@ -17,7 +17,10 @@ function oneLiner(a: Analysis): string {
     case "apply":
       return "지원 가능 · 스토리보완 이력서 준비됨";
     case "not_recommended":
-      return "대안 경로 확인";
+      {
+        const alt = a.targetResume?.gaps?.find((g) => g.category === "hard" && g.alternativePath)?.alternativePath;
+        return alt ? `대안: ${alt.length > 60 ? alt.slice(0, 60) + "…" : alt}` : "대안 경로 확인";
+      }
   }
 }
 

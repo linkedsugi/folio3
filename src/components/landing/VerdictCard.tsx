@@ -43,7 +43,7 @@ export function VerdictCard({ facts }: { facts: SampleFacts }) {
                   <span className="truncate text-ink-2">{g.title}</span>
                 </span>
                 <span className="num shrink-0 text-muted">
-                  <b className="font-semibold text-accent">+{g.impact}%p</b> · {EFFORT_LABEL[g.effort]}
+                  <b className="font-semibold text-accent">예상 +{g.impact}%p</b> · {EFFORT_LABEL[g.effort]}
                 </span>
               </li>
             ))}

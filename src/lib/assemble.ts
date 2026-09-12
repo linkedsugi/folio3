@@ -3,10 +3,10 @@ import {
   LEVEL_VALUE,
   decideVerdict,
   effectiveWeight,
-  faceScore as calcFaceScore,
+  faceScoreExact,
   normalizeArgument,
   storyLevelMap,
-  storyScore as calcStoryScore,
+  storyScoreExact,
 } from "./scoring";
 import {
   PASS_LINE,
@@ -45,26 +45,23 @@ export function toManagerView(stage: ManagerStage): ManagerView {
   };
 }
 
-/** 문자·숫자만 남긴 비교용 문자열 */
+/** 문자·숫자(+ 기술 표기에 쓰이는 + # .)만 남긴 비교용 문자열 */
 export function normalizeText(s: string): string {
-  return s.replace(/[^\p{L}\p{N}]/gu, "").toLowerCase();
+  return s.replace(/[^\p{L}\p{N}+#.]/gu, "").toLowerCase();
 }
+
+/** 근거로 인정하는 인용문의 최소 길이 (정규화 후) */
+export const MIN_QUOTE_LEN = 6;
 
 /**
  * 인용문이 이력 원문에 실제로 있는지 확인한다.
- * 정규화 후 포함되면 통과. 긴 인용은 12자 조각의 60% 이상이 있으면 통과.
+ * 공백·문장부호를 제외한 정규화 문자열이 원문에 그대로 포함될 때만 통과한다 (한 글자라도 다르면 실패).
+ * 너무 짧은 인용("팀", "2024")은 근거로 세지 않는다.
  */
 export function quoteFound(quote: string, resumeText: string): boolean {
   const q = normalizeText(quote);
-  const r = normalizeText(resumeText);
-  if (q.length === 0) return false;
-  if (r.includes(q)) return true;
-  if (q.length < 12) return false;
-  const chunks: string[] = [];
-  for (let i = 0; i + 12 <= q.length; i += 12) chunks.push(q.slice(i, i + 12));
-  if (chunks.length === 0) return false;
-  const found = chunks.filter((c) => r.includes(c)).length;
-  return found / chunks.length >= 0.6;
+  if (q.length < MIN_QUOTE_LEN) return false;
+  return normalizeText(resumeText).includes(q);
 }
 
 export function toBasicResume(stage: BasicStage, view: ManagerView): BasicResume {
@@ -90,7 +87,8 @@ export function toBasicResume(stage: BasicStage, view: ManagerView): BasicResume
       entries: s.entries.map((e) => ({ period: e.period ?? undefined, title: e.title, detail: e.detail })),
     })),
     matches,
-    faceScore: calcFaceScore(view.items, matches),
+    faceScore: Math.round(faceScoreExact(view.items, matches)),
+    faceScoreExact: faceScoreExact(view.items, matches),
   };
 }
 
@@ -108,8 +106,10 @@ export function toStoryResume(
   const face = new Map(basic.matches.map((m) => [m.itemId, m.level]));
   const known = new Set(view.items.map((i) => i.id));
   const args: StoryArgument[] = [];
+  const seenItems = new Set<string>();
   for (const a of stage.arguments) {
-    if (!known.has(a.itemId)) continue;
+    if (!known.has(a.itemId) || seenItems.has(a.itemId)) continue; // 항목당 논증 하나만 (첫 번째)
+    seenItems.add(a.itemId);
     const verified = a.evidence.filter((e) => quoteFound(e.quote, resumeText));
     const dropped = a.evidence.length - verified.length;
     let status = a.evidenceStatus;
@@ -148,7 +148,8 @@ export function toStoryResume(
     headline: stage.headline,
     answers: stage.answers,
     arguments: args,
-    storyScore: calcStoryScore(view.items, basic.matches, args),
+    storyScore: Math.round(storyScoreExact(view.items, basic.matches, args)),
+    storyScoreExact: storyScoreExact(view.items, basic.matches, args),
     resumeMarkdown: stage.resumeMarkdown,
   };
 }
@@ -165,37 +166,47 @@ export function toTargetResume(
   const total = view.items.reduce((s, it) => s + effectiveWeight(it), 0);
   const itemById = new Map(view.items.map((it) => [it.id, it]));
 
-  // 항목별 gap 수 (impact 를 나누기 위해)
-  const perItem = new Map<string, number>();
-  for (const g of stage.gaps) perItem.set(g.itemId, (perItem.get(g.itemId) ?? 0) + 1);
+  // 단기 대체 불가 요건의 보강은 갈래 ④로 강제한다 (갈음·보강으로 올릴 수 없는 항목)
+  const raw = stage.gaps
+    .filter((g) => itemById.has(g.itemId) && (levels.get(g.itemId) ?? "unmet") !== "met")
+    .map((g) => (itemById.get(g.itemId)?.hardGate && g.category !== "hard" ? { ...g, category: "hard" as const } : g));
 
-  const gaps: Gap[] = [];
-  stage.gaps.forEach((g, i) => {
-    const item = itemById.get(g.itemId);
-    if (!item) return;
+  // 항목별 '실행 가능한' gap 수 — 항목의 최대 상승분을 이들끼리 나눈다 (④는 나누기에 넣지 않는다)
+  const doablePerItem = new Map<string, number>();
+  for (const g of raw) if (g.category !== "hard") doablePerItem.set(g.itemId, (doablePerItem.get(g.itemId) ?? 0) + 1);
+
+  const gaps: Gap[] = raw.map((g, i) => {
+    const item = itemById.get(g.itemId)!;
     const level: MatchLevel = levels.get(g.itemId) ?? "unmet";
-    if (level === "met") return; // 이미 충족한 항목의 보강은 의미가 없다
-    const maxGain = (effectiveWeight(item) / total) * (1 - LEVEL_VALUE[level]) * 100;
-    const share = maxGain / (perItem.get(g.itemId) ?? 1);
-    const impact = share > 0 ? Math.max(1, Math.round(share)) : 0;
-    gaps.push({
+    const maxGain = total > 0 ? (effectiveWeight(item) / total) * (1 - LEVEL_VALUE[level]) * 100 : 0;
+    const share = g.category === "hard" ? maxGain : maxGain / (doablePerItem.get(g.itemId) ?? 1);
+    return {
       id: `g${i + 1}`,
       itemId: g.itemId,
       category: g.category,
       title: g.title,
       action: g.action,
-      impact,
+      impact: Math.round(share),
+      impactExact: share,
       effort: g.effort,
       questions: g.category === "hidden" ? (g.questions ?? undefined) : undefined,
       alternativePath: g.category === "hard" ? (g.alternativePath ?? undefined) : undefined,
-    });
+    };
   });
   gaps.sort((a, b) => CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category));
 
-  const doable = gaps.filter((g) => g.category !== "hard").reduce((s, g) => s + g.impact, 0);
+  // 예상치는 반올림된 %p 가 아니라 반올림 전 상승분(점수 산식의 몫)을 더해 계산한다.
+  // 한 항목의 실행 가능한 보강들은 그 항목의 최대 상승분을 나눠 가지므로 합이 항목 상한을 넘지 않는다.
+  const gain = (cats: GapCategory[]) =>
+    gaps.filter((g) => g.category !== "hard" && cats.includes(g.category)).reduce((x, g) => x + g.impactExact, 0);
+  const minimalExact = Math.min(100, story.storyScoreExact + gain(["hidden", "weak"]));
+  const recommendedExact = Math.min(100, story.storyScoreExact + gain(["hidden", "weak", "missing"]));
   return {
     gaps,
-    projectedScore: Math.min(100, story.storyScore + doable),
+    projectedScore: Math.round(recommendedExact),
+    projectedScoreExact: recommendedExact,
+    projectedMinimal: Math.round(minimalExact),
+    projectedMinimalExact: minimalExact,
     timeline: stage.timeline,
     resumeMarkdown: stage.resumeMarkdown,
   };
@@ -208,13 +219,13 @@ export function provisionalVerdict(view: ManagerView, basic: BasicResume, story:
     (it) => it.hardGate && it.priority === "required" && (levels.get(it.id) ?? "unmet") === "unmet",
   );
   if (hardUnmet) return "not_recommended";
-  if (story.storyScore >= PASS_LINE) return "apply";
+  if (story.storyScoreExact >= PASS_LINE) return "apply";
   return "pending";
 }
 
 export function verdictFor(view: ManagerView, basic: BasicResume, story: StoryResume, target: TargetResume): Verdict {
   const levels = storyLevelMap(basic.matches, story.arguments);
-  return decideVerdict(story.storyScore, target.projectedScore, view.items, (it) => levels.get(it.id) ?? "unmet");
+  return decideVerdict(story.storyScoreExact, target.projectedScoreExact, view.items, (it) => levels.get(it.id) ?? "unmet");
 }
 
 export interface AssembleInput {

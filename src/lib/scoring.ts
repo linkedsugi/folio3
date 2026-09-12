@@ -39,22 +39,48 @@ export function effectiveWeight(item: JdItem): number {
   return item.priority === "required" ? w * 1.5 : w;
 }
 
-/** 가중 평균 충족률 (0–100, 정수) */
-export function weightedScore(items: JdItem[], levelOf: (item: JdItem) => MatchLevel): number {
+/** 가중 점수 합과 무게 합 */
+export function scorePoints(items: JdItem[], levelOf: (item: JdItem) => MatchLevel): { pts: number; total: number } {
   let total = 0;
-  let got = 0;
+  let pts = 0;
   for (const item of items) {
     const w = effectiveWeight(item);
     total += w;
-    got += w * LEVEL_VALUE[levelOf(item)];
+    pts += w * LEVEL_VALUE[levelOf(item)];
   }
+  return { pts, total };
+}
+
+/** 가중 평균 충족률 — 반올림 전 값 (0–100) */
+export function weightedScoreExact(items: JdItem[], levelOf: (item: JdItem) => MatchLevel): number {
+  const { pts, total } = scorePoints(items, levelOf);
   if (total === 0) return 0;
-  return Math.round((got / total) * 100);
+  return (pts / total) * 100;
+}
+
+/** 가중 평균 충족률 (0–100, 표시용 정수) */
+export function weightedScore(items: JdItem[], levelOf: (item: JdItem) => MatchLevel): number {
+  return Math.round(weightedScoreExact(items, levelOf));
+}
+
+/**
+ * 표시용 문자열. 반올림하면 합격선에 닿지만 실제로는 못 미치는 경우(79.5~79.99)에는
+ * 소수 한 자리를 병기해 판정과 숫자가 어긋나 보이지 않게 한다.
+ */
+export function fmtScore(exact: number | undefined, rounded: number): string {
+  if (exact === undefined || !Number.isFinite(exact)) return `${rounded}`;
+  const r = Math.round(exact);
+  if (r >= PASS_LINE && exact < PASS_LINE) return exact.toFixed(1);
+  return `${r}`;
+}
+
+export function faceScoreExact(items: JdItem[], matches: FaceMatch[]): number {
+  const map = new Map(matches.map((m) => [m.itemId, m.level]));
+  return weightedScoreExact(items, (it) => map.get(it.id) ?? "unmet");
 }
 
 export function faceScore(items: JdItem[], matches: FaceMatch[]): number {
-  const map = new Map(matches.map((m) => [m.itemId, m.level]));
-  return weightedScore(items, (it) => map.get(it.id) ?? "unmet");
+  return Math.round(faceScoreExact(items, matches));
 }
 
 /**
@@ -72,15 +98,13 @@ export function normalizeArgument(arg: StoryArgument, face: MatchLevel): StoryAr
   return { ...arg, level, counted: grounded && LEVEL_VALUE[level] > LEVEL_VALUE[face] };
 }
 
+export function storyScoreExact(items: JdItem[], matches: FaceMatch[], args: StoryArgument[]): number {
+  const levels = storyLevelMap(matches, args);
+  return weightedScoreExact(items, (it) => levels.get(it.id) ?? "unmet");
+}
+
 export function storyScore(items: JdItem[], matches: FaceMatch[], args: StoryArgument[]): number {
-  const face = new Map(matches.map((m) => [m.itemId, m.level]));
-  const story = new Map(args.map((a) => [a.itemId, a]));
-  return weightedScore(items, (it) => {
-    const f = face.get(it.id) ?? "unmet";
-    const a = story.get(it.id);
-    if (!a) return f;
-    return normalizeArgument(a, f).level;
-  });
+  return Math.round(storyScoreExact(items, matches, args));
 }
 
 /**
@@ -91,7 +115,9 @@ export function storyScore(items: JdItem[], matches: FaceMatch[], args: StoryArg
  *  - 그래도 미달  비추천
  */
 export function decideVerdict(
+  /** 반올림 전 스토리보완 충족률 */
   score: number,
+  /** 반올림 전 권장 경로 예상 충족률 */
   projected: number,
   items: JdItem[],
   levelOf: (item: JdItem) => MatchLevel,
@@ -105,6 +131,7 @@ export function decideVerdict(
   return "not_recommended";
 }
 
+/** 항목별 보완 후 수준. 같은 항목에 논증이 둘 이상이면 첫 번째만 본다 (toStoryResume 에서 이미 중복 제거) */
 export function storyLevelMap(matches: FaceMatch[], args: StoryArgument[]): Map<string, MatchLevel> {
   const face = new Map(matches.map((m) => [m.itemId, m.level]));
   const out = new Map<string, MatchLevel>();
@@ -113,11 +140,6 @@ export function storyLevelMap(matches: FaceMatch[], args: StoryArgument[]): Map<
     out.set(id, a ? normalizeArgument(a, f).level : f);
   }
   return out;
-}
-
-/** 보강 완료 시 예상 충족률: 현재 스토리 점수 + 완료된 gap 의 impact 합 (상한 100) */
-export function projectedScore(base: number, impacts: number[]): number {
-  return Math.min(100, Math.round(base + impacts.reduce((a, b) => a + b, 0)));
 }
 
 export const GAP_CATEGORY_META = {
