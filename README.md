@@ -71,6 +71,10 @@ src/lib/
 - 같은 공고의 재분석은 JD 가 그대로일 때 3회까지 열림 상태를 이어받습니다.
 - 모든 결과·크레딧 상태는 브라우저 `localStorage`에만 저장됩니다 (서버 DB 없음).
 
+## 아티팩트(서버 없는) 빌드
+
+`pnpm build:artifact` 는 같은 소스를 해시 라우팅 단일 페이지 앱으로 번들합니다 (`artifact/dist/`: `index.html` · `app.js` · `app.css`). 이 번들은 claude.ai 아티팩트로 게시할 수 있으며, 실제 분석은 아티팩트의 `sample` 능력(페이지를 연 계정의 Claude)으로 브라우저 안에서 실행됩니다. 결과와 크레딧은 그대로 localStorage에 저장됩니다. `next/link`·`next/navigation`은 `artifact/shims/`로, 분석 전송 계층(`src/lib/client/transport.ts`)은 `artifact/transport.ts`로 대체됩니다.
+
 ## 배포
 
 Vercel 등 Node.js 런타임에 그대로 배포할 수 있습니다. `api/analyze`는 최대 300초(`maxDuration`)의 스트리밍 응답을 사용하므로 서버리스 제한을 확인하세요. 환경 변수는 `.env.example`을 참고하세요.

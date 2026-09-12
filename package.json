@@ -10,7 +10,8 @@
     "typecheck": "next typegen && tsc --noEmit -p tsconfig.json",
     "smoke": "node scripts/smoke.mjs",
     "check:scoring": "tsx --tsconfig tsconfig.json scripts/check-scoring.ts",
-    "check:pipeline": "tsx --tsconfig tsconfig.json scripts/check-pipeline.ts"
+    "check:pipeline": "tsx --tsconfig tsconfig.json scripts/check-pipeline.ts",
+    "build:artifact": "node scripts/build-artifact.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",
@@ -21,10 +22,12 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
+    "@tailwindcss/cli": "^4.3.3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "esbuild": "^0.28.2",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "tailwindcss": "^4",

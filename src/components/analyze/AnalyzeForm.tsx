@@ -5,9 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { COPY } from "@/lib/copy";
 import { SAMPLE_STAGES } from "@/lib/sample";
+import { streamAnalysis } from "@/lib/client/transport";
 import { REANALYSIS_INCLUDED, claimFirstFree, clearDraft, getAnalysis, getDraft, listAnalyses, newId, reanalysisCount, saveAnalysis, saveDraft } from "@/lib/storage";
 import { useCredits, useHydrated } from "@/lib/useStorage";
-import type { Analysis, AnalyzeEvent, StageId } from "@/lib/types";
+import type { Analysis, StageId } from "@/lib/types";
 import { Button, Pill, btnClass } from "../ui";
 import { ProgressStepper, type StageState } from "./ProgressStepper";
 
@@ -33,7 +34,16 @@ function isSampleText(jd: string, resume: string): boolean {
 }
 
 /** 하이드레이션 전에는 폼을 그리지 않는다 — 초기값이 브라우저 저장소에서 오기 때문 */
-export function AnalyzeForm({ live, model }: { live: boolean; model: string | null }) {
+export interface AnalyzeFormProps {
+  live: boolean;
+  model: string | null;
+  /** AI 분석이 불가능할 때 보여줄 이유 */
+  offlineNote?: string;
+}
+
+const DEFAULT_OFFLINE = "데모 모드 · 서버에 API 키가 없어 샘플 공고만 분석됩니다";
+
+export function AnalyzeForm({ live, model, offlineNote = DEFAULT_OFFLINE }: AnalyzeFormProps) {
   const hydrated = useHydrated();
   const search = useSearchParams();
   const fromId = search.get("from");
@@ -48,10 +58,10 @@ export function AnalyzeForm({ live, model }: { live: boolean; model: string | nu
       </div>
     );
   }
-  return <FormInner key={fromId ?? "new"} live={live} model={model} fromId={fromId} />;
+  return <FormInner key={fromId ?? "new"} live={live} model={model} fromId={fromId} offlineNote={offlineNote} />;
 }
 
-function FormInner({ live, model, fromId }: { live: boolean; model: string | null; fromId: string | null }) {
+function FormInner({ live, model, fromId, offlineNote }: { live: boolean; model: string | null; fromId: string | null; offlineNote: string }) {
   const router = useRouter();
   const credits = useCredits();
   const firstFree = !credits.firstFreeUsed;
@@ -110,30 +120,10 @@ function FormInner({ live, model, fromId }: { live: boolean; model: string | nul
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     try {
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, company, title, jdText: jd, resumeText: resume, demo: isSample, parentId: parent && sameJd ? parent.id : null }),
-        signal: ctrl.signal,
-      });
-      if (!res.ok || !res.body) {
-        const j = (await res.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(j?.error ?? `요청이 실패했습니다 (${res.status})`);
-      }
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buf = "";
-      let result: Analysis | null = null;
-      for (;;) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buf += decoder.decode(value, { stream: true });
-        let nl: number;
-        while ((nl = buf.indexOf("\n")) >= 0) {
-          const line = buf.slice(0, nl).trim();
-          buf = buf.slice(nl + 1);
-          if (!line) continue;
-          const ev = JSON.parse(line) as AnalyzeEvent;
+      const received: { result: Analysis | null } = { result: null };
+      await streamAnalysis(
+        { id, company, title, jdText: jd, resumeText: resume, demo: isSample, parentId: parent && sameJd ? parent.id : null },
+        (ev) => {
           if (ev.type === "stage") {
             setStages((s) => ({ ...s, [ev.stage]: ev.status === "start" ? "running" : "done" }));
           } else if (ev.type === "partial") {
@@ -144,12 +134,14 @@ function FormInner({ live, model, fromId }: { live: boolean; model: string | nul
               setPreviews((p) => ({ ...p, story: `스토리보완 후 ${ev.data.storyScore}% · 근거 부족으로 미반영 ${nc}건` }));
             }
           } else if (ev.type === "result") {
-            result = ev.data;
+            received.result = ev.data;
           } else if (ev.type === "error") {
             throw new Error(ev.message);
           }
-        }
-      }
+        },
+        ctrl.signal,
+      );
+      const result = received.result;
       if (!result) throw new Error("결과를 받지 못했습니다.");
 
       // 저장 + 열림 처리: 샘플/데모는 항상 열림, 같은 공고 재분석은 부모 상태 상속(포함 횟수 이내),
@@ -204,7 +196,7 @@ function FormInner({ live, model, fromId }: { live: boolean; model: string | nul
           {live ? (
             <Pill tone="apply">AI 분석 준비됨{model ? ` · ${model}` : ""}</Pill>
           ) : (
-            <Pill tone="warn">데모 모드 · 서버에 API 키가 없어 샘플 공고만 분석됩니다</Pill>
+            <Pill tone="warn">{offlineNote}</Pill>
           )}
           {parent ? (
             isSample ? (
@@ -317,7 +309,7 @@ function FormInner({ live, model, fromId }: { live: boolean; model: string | nul
             <div className="flex flex-wrap items-center gap-2">
               <Button type="button" variant="secondary" size="sm" onClick={fillSample}>{COPY.input.fillSample}</Button>
               {isSample && <span className="text-xs text-muted">샘플이 채워졌습니다 · 분석 시 크레딧을 쓰지 않습니다</span>}
-              {!isSample && !live && <span className="text-xs text-hold">API 키가 없어 내 공고는 분석되지 않습니다. 샘플로 흐름을 체험해 보세요.</span>}
+              {!isSample && !live && <span className="text-xs text-hold">지금은 내 공고를 분석할 수 없습니다. 샘플로 흐름을 체험해 보세요.</span>}
             </div>
             <Button type="submit" size="lg" disabled={!canSubmit}>{parent ? "다시 분석하기" : COPY.input.submit}</Button>
           </div>
