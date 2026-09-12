@@ -50,7 +50,18 @@ export function GateCard({
       <p className="mt-3 text-xs leading-5 text-muted">첫 공고는 무료였습니다. 두 번째 공고부터는 크레딧이 필요하지만, 결제는 아직 연동되지 않았습니다 (브라우저당 베타 크레딧 3개, 자동 충전 없음).</p>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="unlock-title">
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-4 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="unlock-title"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setOpen(false);
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setOpen(false);
+          }}
+        >
           <div className="card w-full max-w-md p-6">
             <h3 id="unlock-title" className="text-lg font-bold text-ink">결제는 아직 연동되지 않았습니다</h3>
             <p className="mt-2 text-sm leading-6 text-ink-2">지금은 베타 기간입니다. 결제 없이 베타 크레딧으로 열 수 있습니다.</p>
@@ -63,6 +74,7 @@ export function GateCard({
               <Link href="/pricing" className={btnClass("secondary")}>가격 안내 보기</Link>
               <Button
                 type="button"
+                autoFocus
                 onClick={() => {
                   setOpen(false);
                   onUnlock();

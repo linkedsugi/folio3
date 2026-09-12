@@ -92,9 +92,12 @@ export async function runDemo(input: AnalyzeInput, emit: Emit, delayMs = 1400): 
   return analysis;
 }
 
-/** 실제 분석: Claude 4단계 순차 호출 */
-export async function runLive(input: AnalyzeInput, emit: Emit): Promise<Analysis> {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+/** 실제 분석: Claude 4단계 순차 호출 (+ 판정 근거 1회). client 는 테스트에서 주입할 수 있다 */
+export async function runLive(
+  input: AnalyzeInput,
+  emit: Emit,
+  client: Anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }),
+): Promise<Analysis> {
   const { posting, candidate } = input;
 
   await emit({ type: "stage", stage: "manager", status: "start" });

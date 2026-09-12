@@ -23,11 +23,15 @@ pnpm dev                     # http://localhost:3000
 - `ROLEFIT_MODEL`로 모델을 바꿀 수 있습니다 (기본 `claude-fable-5-1`).
 
 ```bash
-pnpm typecheck   # tsc
-pnpm lint        # eslint
-pnpm build       # next build
-CHROME_PATH=/path/to/chrome pnpm smoke   # Playwright 스모크 (dev 서버가 3000 포트에 떠 있어야 함)
+pnpm typecheck        # tsc
+pnpm lint             # eslint
+pnpm build            # next build
+pnpm check:scoring    # 점수 규칙·인용 검증·단기 대체 불가 규칙 단위 확인
+pnpm check:pipeline   # 가짜 Claude 클라이언트로 실제 파이프라인 5회 호출 흐름 확인
+CHROME_PATH=/path/to/chrome pnpm smoke   # Playwright 스모크 (서버가 3000 포트에 떠 있어야 함)
 ```
+
+- `api/analyze`에는 인스턴스 메모리 기반의 단순 속도 제한(IP당 시간당 8회, 실제 분석에만)이 있습니다. 여러 인스턴스로 배포한다면 외부 저장소 기반으로 바꾸세요.
 
 ## 구조
 

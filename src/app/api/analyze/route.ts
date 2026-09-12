@@ -7,6 +7,23 @@ export const maxDuration = 300;
 
 const MAX = 30000;
 
+/** 인스턴스 메모리 기반의 단순 속도 제한 — 실제 분석(비용 발생)에만 적용 */
+const WINDOW_MS = 60 * 60 * 1000;
+const LIMIT_PER_WINDOW = 8;
+const hits = new Map<string, number[]>();
+function rateLimited(key: string): boolean {
+  const now = Date.now();
+  const arr = (hits.get(key) ?? []).filter((t) => now - t < WINDOW_MS);
+  if (arr.length >= LIMIT_PER_WINDOW) {
+    hits.set(key, arr);
+    return true;
+  }
+  arr.push(now);
+  hits.set(key, arr);
+  if (hits.size > 5000) hits.clear();
+  return false;
+}
+
 const BodySchema = z.object({
   id: z.string().min(1).max(64),
   company: z.string().max(200).default(""),
@@ -47,6 +64,13 @@ export async function POST(req: Request) {
     }
     if (body.resumeText.trim().length < 150) {
       return Response.json({ error: "이력이 너무 짧습니다. 사소한 경험까지 전부 적어 주세요." }, { status: 400 });
+    }
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "anon";
+    if (rateLimited(ip)) {
+      return Response.json(
+        { error: "잠시 후 다시 시도해 주세요. 한 시간에 분석할 수 있는 횟수를 넘었습니다.", code: "rate_limited" },
+        { status: 429 },
+      );
     }
   }
 
