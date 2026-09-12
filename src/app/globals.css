@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-noto-kr), "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-paper: #f7f6f2;
+  --color-paper-2: #efede7;
+  --color-card: #ffffff;
+  --color-ink: #17181c;
+  --color-ink-2: #3b3d44;
+  --color-muted: #6b6f78;
+  --color-faint: #9a9ea6;
+  --color-line: #e5e2da;
+  --color-line-2: #d5d1c7;
+
+  --color-accent: #1e40af;
+  --color-accent-2: #2f52c9;
+  --color-accent-soft: #e8edfb;
+
+  --color-apply: #1b7a3e;
+  --color-apply-soft: #e3f3e8;
+  --color-hold: #b4620a;
+  --color-hold-soft: #fbeedb;
+  --color-no: #5b5f68;
+  --color-no-soft: #ebebe9;
+
+  --color-met: #1e40af;
+  --color-partial: #d08a1c;
+  --color-unmet: #c3c6cc;
+  --color-pass: #17181c;
+
+  --radius-card: 14px;
+  --shadow-card: 0 1px 2px rgba(23, 24, 28, 0.04), 0 8px 24px -12px rgba(23, 24, 28, 0.12);
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  background: var(--color-paper);
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum" 1, "ss01" 1;
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+::selection {
+  background: #d6def8;
+}
+
+@layer components {
+.num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.card {
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.prose-resume h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0 0 0.5rem;
+}
+.prose-resume h2 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 1.25rem 0 0.4rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-line);
+  color: var(--color-ink);
+}
+.prose-resume h3 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0.9rem 0 0.3rem;
+}
+.prose-resume p {
+  margin: 0.35rem 0;
+  color: var(--color-ink-2);
+}
+.prose-resume ul {
+  margin: 0.25rem 0 0.5rem;
+  padding-left: 1.1rem;
+  list-style: disc;
+}
+.prose-resume li {
+  margin: 0.2rem 0;
+  color: var(--color-ink-2);
+}
+.prose-resume strong {
+  color: var(--color-ink);
+  font-weight: 700;
+}
+.prose-resume .todo {
+  background: #fff3d6;
+  color: #7a4b00;
+  border-radius: 4px;
+  padding: 0 0.3em;
+  font-weight: 600;
+}
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+.pulse-dot {
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.rise {
+  animation: rise 0.35s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot, .rise { animation: none; }
+}
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; }
+  .card { box-shadow: none; }
+}
