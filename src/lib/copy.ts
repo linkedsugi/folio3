@@ -96,8 +96,10 @@ export function won(n: number): string {
   return `${n.toLocaleString("ko-KR")}원`;
 }
 
+/** 서버·브라우저 어디서 렌더해도 같은 결과가 나오도록 한국 시간(UTC+9) 기준으로 고정한다 */
 export function formatDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return "";
+  const d = new Date(t + 9 * 60 * 60 * 1000);
+  return `${d.getUTCFullYear()}.${String(d.getUTCMonth() + 1).padStart(2, "0")}.${String(d.getUTCDate()).padStart(2, "0")}`;
 }

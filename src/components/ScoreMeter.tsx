@@ -28,7 +28,7 @@ export function ScoreMeter({
         className={`relative w-full overflow-visible rounded-full bg-paper-2 ${h}`}
       >
         <div className="absolute inset-y-0 left-0 rounded-full bg-met/90" style={{ width: `${Math.min(100, story)}%` }} />
-        <div className="absolute inset-y-0 left-0 rounded-full bg-faint" style={{ width: `${Math.min(100, face)}%` }} />
+        <div className="absolute inset-y-0 left-0 rounded-full bg-muted" style={{ width: `${Math.min(100, face)}%` }} />
         <div
           className="absolute -top-1 -bottom-1 w-0 border-l-2 border-dashed border-pass"
           style={{ left: `${passLine}%` }}
@@ -38,7 +38,7 @@ export function ScoreMeter({
       {showLabels && (
         <div className={`mt-2 flex flex-wrap items-baseline gap-x-4 gap-y-1 ${size === "sm" ? "text-[11px]" : "text-xs"} text-muted`}>
           <span className="inline-flex items-center gap-1.5">
-            <i className="inline-block h-2 w-2 rounded-full bg-faint" aria-hidden />
+            <i className="inline-block h-2 w-2 rounded-full bg-muted" aria-hidden />
             액면 <b className="num text-ink-2">{face}%</b>
           </span>
           <span className="inline-flex items-center gap-1.5">

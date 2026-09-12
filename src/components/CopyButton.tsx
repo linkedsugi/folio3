@@ -25,11 +25,11 @@ export function CopyButton({ text, label = "복사하기", size = "sm", variant 
   );
 }
 
-export function DownloadButton({ text, filename, label = "텍스트로 저장" }: { text: string; filename: string; label?: string }) {
+export function DownloadButton({ text, filename, label = "텍스트로 저장", size = "sm" }: { text: string; filename: string; label?: string; size?: "sm" | "md" }) {
   return (
     <Button
       type="button"
-      size="sm"
+      size={size}
       variant="secondary"
       onClick={() => {
         const blob = new Blob([text], { type: "text/markdown;charset=utf-8" });

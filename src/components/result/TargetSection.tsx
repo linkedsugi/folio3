@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Analysis, Gap, GapCategory } from "@/lib/types";
 import { EFFORT_LABEL, GAP_CATEGORY_META } from "@/lib/scoring";
 import { Markdown } from "../Markdown";
-import { Pill, btnClass } from "../ui";
+import { Button, Pill, btnClass } from "../ui";
 import { SectionHeader } from "./SectionHeader";
 
 const ORDER: GapCategory[] = ["hidden", "weak", "missing", "hard"];
@@ -184,14 +184,14 @@ export function TargetSection({
         <div className="mt-3 flex flex-wrap gap-2">
           {isSample ? (
             <span className="text-sm text-white/70">샘플 결과에서는 재분석할 수 없습니다. 내 공고로 분석해 보세요.</span>
-          ) : (
-            <Link
-              href={`/analyze?from=${analysis.id}`}
-              aria-disabled={!hasInput}
-              className={btnClass("secondary", "md", hasInput ? "" : "pointer-events-none opacity-50")}
-            >
+          ) : hasInput ? (
+            <Link href={`/analyze?from=${analysis.id}`} className={btnClass("secondary", "md")}>
               보강 내용 반영해서 다시 분석하기
             </Link>
+          ) : (
+            <Button type="button" variant="secondary" disabled>
+              보강 내용 반영해서 다시 분석하기
+            </Button>
           )}
           {!isSample && !hasInput && <span className="self-center text-xs text-white/60">체크 1개 또는 메모 1줄 이상이면 활성화됩니다</span>}
         </div>
@@ -256,8 +256,8 @@ function GapRow({
           <p className="mt-2 text-sm leading-6 text-ink-2">{gap.action}</p>
           {gap.questions && gap.questions.length > 0 && (
             <ul className="mt-2 space-y-1 rounded-md bg-card px-3 py-2 text-sm leading-6 text-ink-2">
-              {gap.questions.map((q) => (
-                <li key={q} className="flex gap-2"><span className="text-accent" aria-hidden>?</span><span>{q}</span></li>
+              {gap.questions.map((q, i) => (
+                <li key={i} className="flex gap-2"><span className="text-accent" aria-hidden>?</span><span>{q}</span></li>
               ))}
             </ul>
           )}
@@ -279,7 +279,7 @@ function GapRow({
                 onBlur={() => flush(local)}
                 rows={2}
                 placeholder={gap.category === "hidden" ? "질문에 답해 보세요. 사실만 적으면 다음 분석에서 근거가 됩니다." : "한 일·숫자·산출물을 적어 두세요. 재분석 때 이력에 붙습니다."}
-                className="w-full resize-y rounded-md border border-line bg-card px-3 py-2 text-sm leading-6 text-ink placeholder:text-faint focus:border-accent focus:outline-none"
+                className="w-full resize-y rounded-md border border-line bg-card px-3 py-2 text-sm leading-6 text-ink placeholder:text-faint focus:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               />
             </div>
           )}

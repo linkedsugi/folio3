@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Analysis } from "@/lib/types";
 import type { CreditState } from "@/lib/storage";
 import { won } from "@/lib/copy";
@@ -17,6 +17,14 @@ export function GateCard({
   onUnlock: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  // 네이티브 dialog: 포커스 가두기·Escape·닫힌 뒤 포커스 복원을 브라우저가 처리한다
+  useEffect(() => {
+    const d = dialogRef.current;
+    if (!d) return;
+    if (open && !d.open) d.showModal();
+    else if (!open && d.open) d.close();
+  }, [open]);
   const counted = analysis.storyResume.arguments.filter((a) => a.counted).length;
   const uncounted = analysis.storyResume.arguments.length - counted;
   const available = credits.purchased + credits.beta;
@@ -49,43 +57,38 @@ export function GateCard({
       )}
       <p className="mt-3 text-xs leading-5 text-muted">첫 공고는 무료였습니다. 두 번째 공고부터는 크레딧이 필요하지만, 결제는 아직 연동되지 않았습니다 (브라우저당 베타 크레딧 3개, 자동 충전 없음).</p>
 
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-4 sm:items-center"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="unlock-title"
-          onKeyDown={(e) => {
-            if (e.key === "Escape") setOpen(false);
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setOpen(false);
-          }}
-        >
-          <div className="card w-full max-w-md p-6">
-            <h3 id="unlock-title" className="text-lg font-bold text-ink">결제는 아직 연동되지 않았습니다</h3>
-            <p className="mt-2 text-sm leading-6 text-ink-2">지금은 베타 기간입니다. 결제 없이 베타 크레딧으로 열 수 있습니다.</p>
-            <dl className="num mt-3 grid grid-cols-2 gap-y-1 rounded-lg bg-paper px-4 py-3 text-sm">
-              <dt className="text-muted">남은 베타 크레딧</dt><dd className="text-right font-semibold text-ink">{available}개</dd>
-              <dt className="text-muted">출시 예정가</dt><dd className="text-right font-semibold text-ink">공고 1건 {won(3900)}</dd>
-            </dl>
-            <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>닫기</Button>
-              <Link href="/pricing" className={btnClass("secondary")}>가격 안내 보기</Link>
-              <Button
-                type="button"
-                autoFocus
-                onClick={() => {
-                  setOpen(false);
-                  onUnlock();
-                }}
-              >
-                베타 크레딧으로 열기
-              </Button>
-            </div>
+      <dialog
+        ref={dialogRef}
+        onClose={() => setOpen(false)}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) setOpen(false);
+        }}
+        aria-labelledby="unlock-title"
+        className="m-auto w-[calc(100%-2rem)] max-w-md rounded-card border border-line bg-card p-0 text-ink shadow-card backdrop:bg-ink/40 open:flex"
+      >
+        <div className="w-full p-6">
+          <h3 id="unlock-title" className="text-lg font-bold text-ink">결제는 아직 연동되지 않았습니다</h3>
+          <p className="mt-2 text-sm leading-6 text-ink-2">지금은 베타 기간입니다. 결제 없이 베타 크레딧으로 열 수 있습니다.</p>
+          <dl className="num mt-3 grid grid-cols-2 gap-y-1 rounded-lg bg-paper px-4 py-3 text-sm">
+            <dt className="text-muted">남은 베타 크레딧</dt><dd className="text-right font-semibold text-ink">{available}개</dd>
+            <dt className="text-muted">출시 예정가</dt><dd className="text-right font-semibold text-ink">공고 1건 {won(3900)}</dd>
+          </dl>
+          <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>닫기</Button>
+            <Link href="/pricing" className={btnClass("secondary")}>가격 안내 보기</Link>
+            <Button
+              type="button"
+              autoFocus
+              onClick={() => {
+                setOpen(false);
+                onUnlock();
+              }}
+            >
+              베타 크레딧으로 열기
+            </Button>
           </div>
         </div>
-      )}
+      </dialog>
     </section>
   );
 }

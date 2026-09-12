@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "next typegen && tsc --noEmit -p tsconfig.json",
     "smoke": "node scripts/smoke.mjs",
     "check:scoring": "tsx --tsconfig tsconfig.json scripts/check-scoring.ts",
     "check:pipeline": "tsx --tsconfig tsconfig.json scripts/check-pipeline.ts"

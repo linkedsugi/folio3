@@ -158,7 +158,7 @@ export function ResultView({ analysis: stored, isSample }: { analysis: Analysis;
         <ul className="flex gap-1 whitespace-nowrap">
           {NAV.map((n) => (
             <li key={n.href}>
-              <a href={n.href} className="inline-block rounded-md px-3 py-1.5 text-sm text-ink-2 hover:bg-paper-2">{n.label}</a>
+              <a href={n.href} className="inline-flex min-h-11 items-center rounded-md px-3 text-sm text-ink-2 hover:bg-paper-2">{n.label}</a>
             </li>
           ))}
         </ul>

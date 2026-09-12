@@ -54,7 +54,7 @@ export function StorySection({ analysis, locked = false }: { analysis: Analysis;
               return (
                 <li key={it.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm">
                   <span className="font-medium text-ink">{it.label}</span>
-                  <span className="flex items-center gap-2 text-muted">
+                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-muted">
                     <LevelDot level={face} /> <span aria-hidden>→</span> <LevelDot level={after} />
                     {arg && (
                       <Pill tone={arg.counted ? "apply" : arg.evidenceStatus === "grounded" ? "neutral" : "warn"}>
@@ -163,8 +163,8 @@ export function StorySection({ analysis, locked = false }: { analysis: Analysis;
             <div className="flex gap-2 text-sm font-semibold text-ink"><span className="num text-accent">Q{i + 1}</span><span>{a.question}</span></div>
             <p className="mt-1.5 text-sm leading-6 text-ink-2">{a.answer}</p>
             <ul className="mt-2 space-y-1 text-sm leading-6 text-ink-2">
-              {a.bullets.map((b) => (
-                <li key={b} className="flex gap-2"><span aria-hidden>·</span><span>{b}</span></li>
+              {a.bullets.map((b, j) => (
+                <li key={j} className="flex gap-2"><span aria-hidden>·</span><span>{b}</span></li>
               ))}
             </ul>
           </li>

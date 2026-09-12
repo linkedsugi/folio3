@@ -9,8 +9,8 @@
   --color-card: #ffffff;
   --color-ink: #17181c;
   --color-ink-2: #3b3d44;
-  --color-muted: #6b6f78;
-  --color-faint: #9a9ea6;
+  --color-muted: #5f636c;
+  --color-faint: #6f737b;
   --color-line: #e5e2da;
   --color-line-2: #d5d1c7;
 
@@ -20,13 +20,13 @@
 
   --color-apply: #1b7a3e;
   --color-apply-soft: #e3f3e8;
-  --color-hold: #b4620a;
+  --color-hold: #8a4a06;
   --color-hold-soft: #fbeedb;
   --color-no: #5b5f68;
   --color-no-soft: #ebebe9;
 
   --color-met: #1e40af;
-  --color-partial: #d08a1c;
+  --color-partial: #b8730f;
   --color-unmet: #c3c6cc;
   --color-pass: #17181c;
 

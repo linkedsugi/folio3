@@ -54,13 +54,13 @@ export function ProgressStepper({
   const mm = String(Math.floor(sec / 60));
   const ss = String(sec % 60).padStart(2, "0");
   return (
-    <div className="card p-6 sm:p-8" aria-live="polite">
+    <div className="card p-6 sm:p-8">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="text-xs font-bold uppercase tracking-wider text-muted">{demo ? "샘플 분석 중" : title ? `〈${title}〉 판단 중` : "부서장의 눈으로 분석 중"}</div>
-        <div className="num text-xs text-muted" aria-label="경과 시간">경과 {mm}:{ss}</div>
+        <div className="num text-xs text-muted" aria-hidden>경과 {mm}:{ss}</div>
       </div>
       <h1 className="mt-1 text-xl font-bold text-ink sm:text-2xl">{current ? current.title : "마무리하는 중"}</h1>
-      <ol className="mt-6 space-y-5">
+      <ol className="mt-6 space-y-5" aria-live="polite">
         {STAGES.map((s, i) => {
           const st = stages[s.id];
           const line = LINES[s.id];

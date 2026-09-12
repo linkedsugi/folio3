@@ -36,9 +36,9 @@ export default function ResumePrintPage({ params }: { params: Promise<{ id: stri
         <Link href={`/result/${id}`} className={btnClass("ghost", "sm")}>← 결과로</Link>
         {unlocked && (
           <div className="flex flex-wrap gap-2">
-            <CopyButton text={a.storyResume.resumeMarkdown} label="복사" />
-            <DownloadButton text={a.storyResume.resumeMarkdown} filename={filename} label=".md 다운로드" />
-            <Button type="button" size="sm" onClick={() => window.print()}>인쇄 / PDF 저장</Button>
+            <CopyButton text={a.storyResume.resumeMarkdown} label="복사" size="md" />
+            <DownloadButton text={a.storyResume.resumeMarkdown} filename={filename} label=".md 다운로드" size="md" />
+            <Button type="button" onClick={() => window.print()}>인쇄 / PDF 저장</Button>
           </div>
         )}
       </div>

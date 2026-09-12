@@ -263,11 +263,11 @@ function FormInner({ live, model, fromId }: { live: boolean; model: string | nul
           <div className="mt-3 grid grid-cols-2 gap-2">
             <label className="text-xs text-muted">
               회사명 <span className="text-faint">(선택)</span>
-              <input value={company} onChange={(e) => edit(setCompany)(e.target.value)} placeholder="예: Intel Korea" className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm text-ink placeholder:text-faint focus:border-accent focus:outline-none" />
+              <input value={company} onChange={(e) => edit(setCompany)(e.target.value)} placeholder="예: Intel Korea" className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm text-ink placeholder:text-faint focus:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" />
             </label>
             <label className="text-xs text-muted">
               직무명 <span className="text-faint">(선택)</span>
-              <input value={title} onChange={(e) => edit(setTitle)(e.target.value)} placeholder="예: Gaming Application Engineer" className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm text-ink placeholder:text-faint focus:border-accent focus:outline-none" />
+              <input value={title} onChange={(e) => edit(setTitle)(e.target.value)} placeholder="예: Gaming Application Engineer" className="mt-1 h-10 w-full rounded-md border border-line bg-paper px-3 text-sm text-ink placeholder:text-faint focus:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" />
             </label>
           </div>
           <label className="mt-3 block text-xs text-muted">
@@ -278,7 +278,7 @@ function FormInner({ live, model, fromId }: { live: boolean; model: string | nul
               placeholder={COPY.input.jdPh}
               rows={12}
               required
-              className="mt-1 w-full resize-y rounded-md border border-line bg-paper px-3 py-2.5 text-sm leading-6 text-ink placeholder:text-faint focus:border-accent focus:outline-none lg:min-h-[360px]"
+              className="mt-1 w-full resize-y rounded-md border border-line bg-paper px-3 py-2.5 text-sm leading-6 text-ink placeholder:text-faint focus:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent lg:min-h-[360px]"
             />
           </label>
           {jdLen > 0 && jdLen < 200 && <p className="mt-1 text-xs text-hold">공고 본문이 짧습니다 (200자 이상). 주요 업무·자격 요건·우대 사항을 모두 넣어 주세요.</p>}
@@ -297,7 +297,7 @@ function FormInner({ live, model, fromId }: { live: boolean; model: string | nul
               placeholder={COPY.input.resumePh}
               rows={14}
               required
-              className="mt-1 w-full resize-y rounded-md border border-line bg-paper px-3 py-2.5 text-sm leading-6 text-ink placeholder:text-faint focus:border-accent focus:outline-none lg:min-h-[420px]"
+              className="mt-1 w-full resize-y rounded-md border border-line bg-paper px-3 py-2.5 text-sm leading-6 text-ink placeholder:text-faint focus:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent lg:min-h-[420px]"
             />
           </label>
           {resumeLen > 0 && resumeLen < 150 && <p className="mt-1 text-xs text-hold">이력이 너무 짧습니다 (150자 이상). 사소한 경험까지 전부 적어 주세요.</p>}

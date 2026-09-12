@@ -37,7 +37,12 @@ export function SiteHeader() {
   if (hideOn) return null;
 
   return (
-    <header className="no-print sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur">
+    <header
+      className="no-print sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur"
+      onKeyDown={(e) => {
+        if (e.key === "Escape") setOpen(false);
+      }}
+    >
       <Container className="flex h-14 items-center justify-between gap-3">
         <Link href="/" className="flex items-baseline gap-1 text-[17px] font-black tracking-tight text-ink">
           RoleFit<span className="font-medium text-muted">Canvas</span>
@@ -48,6 +53,7 @@ export function SiteHeader() {
             <Link
               key={n.href}
               href={n.href}
+              aria-current={pathname?.startsWith(n.href) ? "page" : undefined}
               className={`rounded-md px-3 py-1.5 text-sm ${pathname?.startsWith(n.href) ? "bg-paper-2 text-ink font-semibold" : "text-ink-2 hover:bg-paper-2"}`}
             >
               {n.label}
@@ -56,11 +62,12 @@ export function SiteHeader() {
         </nav>
         <div className="flex items-center gap-2">
           <CreditChip />
-          <LinkButton href="/analyze" size="sm" className="hidden sm:inline-flex">새 분석</LinkButton>
+          <LinkButton href="/analyze" size="sm" className="max-sm:hidden">새 분석</LinkButton>
           <button
             type="button"
             aria-label="메뉴"
             aria-expanded={open}
+            aria-controls="mobile-nav"
             onClick={() => setOpen((v) => !v)}
             className="flex h-10 w-10 items-center justify-center rounded-lg text-ink-2 hover:bg-paper-2 md:hidden"
           >
@@ -71,7 +78,7 @@ export function SiteHeader() {
         </div>
       </Container>
       {open && (
-        <div className="border-t border-line bg-paper md:hidden">
+        <div id="mobile-nav" className="border-t border-line bg-paper md:hidden">
           <Container className="flex flex-col py-2">
             {NAV.map((n) => (
               <Link key={n.href} href={n.href} onClick={close} className="rounded-md px-2 py-3 text-sm font-medium text-ink hover:bg-paper-2">

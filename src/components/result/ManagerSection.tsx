@@ -32,8 +32,8 @@ export function ManagerSection({ view, compact = false }: { view: ManagerView; c
           <p className="mt-2 text-lg font-bold leading-snug">{view.personProfile}</p>
           {!compact && (
             <ul className="mt-3 space-y-1 text-sm leading-6 text-white/80">
-              {view.personTraits.map((t) => (
-                <li key={t} className="flex gap-2"><span aria-hidden>·</span><span>{t}</span></li>
+              {view.personTraits.map((t, i) => (
+                <li key={i} className="flex gap-2"><span aria-hidden>·</span><span>{t}</span></li>
               ))}
             </ul>
           )}
@@ -44,7 +44,7 @@ export function ManagerSection({ view, compact = false }: { view: ManagerView; c
         <h3 className="text-xs font-bold uppercase tracking-wider text-muted">부서장이 이력서에서 답을 찾는 질문</h3>
         <ol className="mt-2 grid gap-2 sm:grid-cols-2">
           {view.managerQuestions.map((q, i) => (
-            <li key={q} className="flex gap-3 rounded-lg border border-line bg-paper px-3.5 py-3 text-sm leading-6 text-ink">
+            <li key={i} className="flex gap-3 rounded-lg border border-line bg-paper px-3.5 py-3 text-sm leading-6 text-ink">
               <span className="num shrink-0 font-bold text-accent">Q{i + 1}</span>
               <span>{q}</span>
             </li>
